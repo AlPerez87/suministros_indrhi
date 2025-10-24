@@ -1,0 +1,127 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* Fondo general - gris muy claro */
+    --background: 0 0% 98%;
+    --foreground: 222 47% 11%;
+
+    /* Cards - blanco puro */
+    --card: 0 0% 100%;
+    --card-foreground: 222 47% 11%;
+
+    /* Popovers - blanco puro */
+    --popover: 0 0% 100%;
+    --popover-foreground: 222 47% 11%;
+
+    /* Primary - azul profesional más vibrante */
+    --primary: 217 91% 60%;
+    --primary-foreground: 0 0% 100%;
+
+    /* Secondary - gris claro neutral */
+    --secondary: 210 20% 95%;
+    --secondary-foreground: 222 47% 11%;
+
+    /* Muted - gris para elementos menos importantes */
+    --muted: 210 20% 96%;
+    --muted-foreground: 215 16% 47%;
+
+    /* Accent - azul claro para hover/focus */
+    --accent: 210 40% 96%;
+    --accent-foreground: 222 47% 11%;
+
+    /* Destructive - rojo para acciones destructivas */
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+
+    /* Bordes - gris claro visible */
+    --border: 214 32% 91%;
+    --input: 214 32% 91%;
+    --ring: 217 91% 60%;
+
+    --radius: 0.5rem;
+    
+    /* Charts - colores diferenciados */
+    --chart-1: 217 91% 60%;
+    --chart-2: 142 76% 36%;
+    --chart-3: 262 83% 58%;
+    --chart-4: 27 87% 67%;
+    --chart-5: 43 74% 66%;
+
+    /* Sidebar - azul oscuro profesional */
+    --sidebar-background: 222 47% 11%;
+    --sidebar-foreground: 210 40% 98%;
+    --sidebar-primary: 0 0% 100%;
+    --sidebar-primary-foreground: 222 47% 11%;
+    --sidebar-accent: 217 91% 60%;
+    --sidebar-accent-foreground: 0 0% 100%;
+    --sidebar-border: 222 47% 15%;
+    --sidebar-ring: 217 91% 60%;
+  }
+  .dark {
+    /* Fondo general - gris muy oscuro */
+    --background: 222 47% 11%;
+    --foreground: 210 40% 98%;
+
+    /* Cards - gris oscuro pero diferenciado */
+    --card: 222 47% 14%;
+    --card-foreground: 210 40% 98%;
+
+    /* Popovers - similar a cards */
+    --popover: 222 47% 14%;
+    --popover-foreground: 210 40% 98%;
+
+    /* Primary - azul vibrante */
+    --primary: 217 91% 60%;
+    --primary-foreground: 0 0% 100%;
+
+    /* Secondary - gris medio */
+    --secondary: 217 32% 17%;
+    --secondary-foreground: 210 40% 98%;
+
+    /* Muted - gris medio para elementos menos importantes */
+    --muted: 217 32% 17%;
+    --muted-foreground: 215 20% 65%;
+
+    /* Accent - gris más claro para hover/focus */
+    --accent: 217 32% 22%;
+    --accent-foreground: 210 40% 98%;
+
+    /* Destructive - rojo para acciones destructivas */
+    --destructive: 0 63% 31%;
+    --destructive-foreground: 0 0% 98%;
+
+    /* Bordes - gris visible pero sutil */
+    --border: 217 32% 22%;
+    --input: 217 32% 17%;
+    --ring: 217 91% 60%;
+    
+    /* Charts - colores diferenciados */
+    --chart-1: 217 91% 60%;
+    --chart-2: 142 76% 46%;
+    --chart-3: 262 83% 68%;
+    --chart-4: 27 87% 77%;
+    --chart-5: 43 74% 76%;
+    
+    /* Sidebar - negro profundo */
+    --sidebar-background: 222 47% 8%;
+    --sidebar-foreground: 210 40% 98%;
+    --sidebar-primary: 0 0% 100%;
+    --sidebar-primary-foreground: 222 47% 11%;
+    --sidebar-accent: 217 91% 60%;
+    --sidebar-accent-foreground: 0 0% 100%;
+    --sidebar-border: 222 47% 12%;
+    --sidebar-ring: 217 91% 60%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+}
