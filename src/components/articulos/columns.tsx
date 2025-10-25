@@ -15,15 +15,15 @@ import {
 
 type GetColumnsProps = {
   onEdit?: (articulo: Article) => void;
-  onDelete?: (id: string) => void;
+  onDelete?: (id: number) => void;
 };
 
 export const getColumns = (props?: GetColumnsProps): ColumnDef<Article>[] => [
   {
-    accessorKey: "codigo_articulo",
+    accessorKey: "articulo",
     header: "Código",
     cell: ({ row }) => {
-      return <div className="font-medium">{row.original.codigo_articulo}</div>;
+      return <div className="font-medium">{row.original.articulo}</div>;
     },
   },
   {

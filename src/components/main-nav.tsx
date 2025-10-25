@@ -74,7 +74,7 @@ export function MainNav() {
           </SidebarMenuButton>
         </SidebarMenuItem>
 
-        {(user.role === "SuperAdmin" || user.role === "Admin") && (
+        {(user.rol === "SuperAdmin" || user.rol === "Admin") && (
           <SidebarMenuItem>
             <SidebarMenuButton
               asChild
@@ -89,7 +89,7 @@ export function MainNav() {
           </SidebarMenuItem>
         )}
 
-        {(user.role === "SuperAdmin" || user.role === "Admin" || user.role === "Supply") && (
+        {(user.rol === "SuperAdmin" || user.rol === "Admin" || user.rol === "Supply") && (
           <Collapsible asChild defaultOpen={isActiveSection(["/dashboard/gestion"])}>
             <SidebarMenuItem>
               <CollapsibleTrigger asChild>
@@ -128,7 +128,7 @@ export function MainNav() {
           </Collapsible>
         )}
 
-        {(user.role === "SuperAdmin" || user.role === "Supply") && (
+        {(user.rol === "SuperAdmin" || user.rol === "Supply") && (
           <SidebarMenuItem>
             <SidebarMenuButton
               asChild
@@ -144,7 +144,7 @@ export function MainNav() {
         )}
       </SidebarGroup>
 
-      {user.role === "SuperAdmin" && (
+      {user.rol === "SuperAdmin" && (
         <SidebarGroup>
           <SidebarGroupLabel>Administración</SidebarGroupLabel>
           
@@ -193,7 +193,7 @@ export function MainNav() {
         </SidebarGroup>
       )}
 
-      {user.role === "Supply" && (
+      {user.rol === "Supply" && (
         <SidebarGroup>
           <SidebarGroupLabel>Configuración</SidebarGroupLabel>
           

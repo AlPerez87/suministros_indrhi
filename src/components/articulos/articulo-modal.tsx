@@ -32,7 +32,7 @@ import { Input } from "@/components/ui/input";
 import { Article, UnidadArticulo } from "@/lib/types";
 
 const formSchema = z.object({
-  codigo_articulo: z.string().min(1, "El código es obligatorio"),
+  articulo: z.string().min(1, "El código es obligatorio"),
   descripcion: z.string().min(3, "La descripción debe tener al menos 3 caracteres"),
   existencia: z.coerce.number().min(0, "La existencia debe ser mayor o igual a 0"),
   cantidad_minima: z.coerce.number().min(0, "La cantidad mínima debe ser mayor o igual a 0"),
@@ -67,7 +67,7 @@ export function ArticuloModal({
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      codigo_articulo: "",
+      articulo: "",
       descripcion: "",
       existencia: 0,
       cantidad_minima: 0,
@@ -79,7 +79,7 @@ export function ArticuloModal({
   useEffect(() => {
     if (articulo) {
       form.reset({
-        codigo_articulo: articulo.codigo_articulo,
+        articulo: articulo.articulo,
         descripcion: articulo.descripcion,
         existencia: articulo.existencia,
         cantidad_minima: articulo.cantidad_minima,
@@ -88,7 +88,7 @@ export function ArticuloModal({
       });
     } else {
       form.reset({
-        codigo_articulo: "",
+        articulo: "",
         descripcion: "",
         existencia: 0,
         cantidad_minima: 0,
@@ -123,7 +123,7 @@ export function ArticuloModal({
             <div className="grid grid-cols-2 gap-4">
               <FormField
                 control={form.control}
-                name="codigo_articulo"
+                name="articulo"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Código del Artículo</FormLabel>

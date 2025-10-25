@@ -78,7 +78,7 @@ export const departamentos: Departamento[] = [
 export const articles: Article[] = [
   { 
     id: "art-1", 
-    codigo_articulo: "ART-001",
+    articulo: "ART-001",
     descripcion: "Papel Bond Tamaño Carta",
     existencia: 150,
     cantidad_minima: 20,
@@ -92,7 +92,7 @@ export const articles: Article[] = [
   },
   { 
     id: "art-2", 
-    codigo_articulo: "ART-002",
+    articulo: "ART-002",
     descripcion: "Bolígrafos Azules Caja x50",
     existencia: 80,
     cantidad_minima: 15,
@@ -105,7 +105,7 @@ export const articles: Article[] = [
   },
   { 
     id: "art-3", 
-    codigo_articulo: "ART-003",
+    articulo: "ART-003",
     descripcion: "Engrapadoras Metálicas",
     existencia: 45,
     cantidad_minima: 10,
@@ -118,7 +118,7 @@ export const articles: Article[] = [
   },
   { 
     id: "art-4", 
-    codigo_articulo: "ART-004",
+    articulo: "ART-004",
     descripcion: "Grapas Caja x5000",
     existencia: 120,
     cantidad_minima: 25,
@@ -131,7 +131,7 @@ export const articles: Article[] = [
   },
   { 
     id: "art-5", 
-    codigo_articulo: "ART-005",
+    articulo: "ART-005",
     descripcion: "Libretas Empastadas 100 Hojas",
     existencia: 200,
     cantidad_minima: 30,
@@ -144,7 +144,7 @@ export const articles: Article[] = [
   },
   { 
     id: "art-6", 
-    codigo_articulo: "ART-006",
+    articulo: "ART-006",
     descripcion: "Tóner HP LaserJet Negro",
     existencia: 25,
     cantidad_minima: 5,
@@ -157,7 +157,7 @@ export const articles: Article[] = [
   },
   { 
     id: "art-7", 
-    codigo_articulo: "ART-007",
+    articulo: "ART-007",
     descripcion: "Marcadores para Pizarra Pack x4",
     existencia: 65,
     cantidad_minima: 12,
@@ -170,7 +170,7 @@ export const articles: Article[] = [
   },
   { 
     id: "art-8", 
-    codigo_articulo: "ART-008",
+    articulo: "ART-008",
     descripcion: "Carpetas de Archivo Tamaño Oficio",
     existencia: 180,
     cantidad_minima: 40,
@@ -183,7 +183,7 @@ export const articles: Article[] = [
   },
   { 
     id: "art-9", 
-    codigo_articulo: "ART-009",
+    articulo: "ART-009",
     descripcion: "Clips Metálicos Caja x100",
     existencia: 90,
     cantidad_minima: 20,
@@ -196,7 +196,7 @@ export const articles: Article[] = [
   },
   { 
     id: "art-10", 
-    codigo_articulo: "ART-010",
+    articulo: "ART-010",
     descripcion: "Alcohol en Gel 1 Galón",
     existencia: 40,
     cantidad_minima: 8,

@@ -53,7 +53,7 @@ export default function AutorizacionesPage() {
   }, []);
 
   useEffect(() => {
-    if (!isLoading && user?.role !== "SuperAdmin" && user?.role !== "Admin") {
+    if (!isLoading && user?.rol !== "SuperAdmin" && user?.rol !== "Admin") {
       toast({
         variant: "destructive",
         title: "Acceso Denegado",
@@ -64,7 +64,7 @@ export default function AutorizacionesPage() {
   }, [user, isLoading, router, toast]);
 
   if (isLoading) return <div>Cargando...</div>;
-  if (!user || (user.role !== "SuperAdmin" && user.role !== "Admin")) {
+  if (!user || (user.rol !== "SuperAdmin" && user.rol !== "Admin")) {
     return null;
   }
 

@@ -62,7 +62,7 @@ export default function SolicitudesDespachadasPage() {
   }, []);
 
   useEffect(() => {
-    if (!isLoading && user?.role !== "SuperAdmin" && user?.role !== "Admin" && user?.role !== "Supply") {
+    if (!isLoading && user?.rol !== "SuperAdmin" && user?.rol !== "Admin" && user?.rol !== "Supply") {
       toast({
         variant: "destructive",
         title: "Acceso Denegado",
@@ -73,7 +73,7 @@ export default function SolicitudesDespachadasPage() {
   }, [user, isLoading, router, toast]);
 
   if (isLoading) return <div>Cargando...</div>;
-  if (!user || (user.role !== "SuperAdmin" && user.role !== "Admin" && user.role !== "Supply")) {
+  if (!user || (user.rol !== "SuperAdmin" && user.rol !== "Admin" && user.rol !== "Supply")) {
     return null;
   }
 
@@ -280,7 +280,7 @@ export default function SolicitudesDespachadasPage() {
                             className="border-t hover:bg-muted/50 transition-colors"
                           >
                             <td className="p-3 font-mono text-sm">
-                              {articulo?.codigo_articulo || "N/A"}
+                              {articulo?.articulo || "N/A"}
                             </td>
                             <td className="p-3">
                               {articulo?.descripcion || "Artículo desconocido"}

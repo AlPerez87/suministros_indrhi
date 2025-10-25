@@ -39,7 +39,7 @@ export default function DepartamentosPage() {
   const [deletingId, setDeletingId] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!isLoading && user?.role !== 'SuperAdmin' && user?.role !== 'Supply') {
+    if (!isLoading && user?.rol !== 'SuperAdmin' && user?.rol !== 'Supply') {
       toast({
         variant: "destructive",
         title: "Acceso Denegado",
@@ -58,7 +58,7 @@ export default function DepartamentosPage() {
   }, []);
 
   if (isLoading) return <div>Cargando...</div>;
-  if (!user || (user.role !== 'SuperAdmin' && user.role !== 'Supply')) {
+  if (!user || (user.rol !== 'SuperAdmin' && user.rol !== 'Supply')) {
     return null;
   }
 
@@ -227,7 +227,7 @@ export default function DepartamentosPage() {
         description="Gestiona los departamentos de la organización."
       >
         <div className="flex gap-2">
-          {user?.role === 'SuperAdmin' && (
+          {user?.rol === 'SuperAdmin' && (
             <CSVImport
               onImport={handleCSVImport}
               title="Importar Departamentos desde CSV"

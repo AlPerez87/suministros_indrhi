@@ -53,7 +53,7 @@ export const getColumns = ({ currentUser, onStatusChange, onDispatch }: GetColum
     cell: ({ row }) => {
         const userId = row.getValue("userId") as string;
         const user = users.find(u => u.id === userId);
-        return user ? user.name : "Desconocido";
+        return user ? user.nombre : "Desconocido";
     }
   },
   {

@@ -1,14 +1,22 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { query } from '@/lib/db';
 import { Article } from '@/lib/types';
+import { TABLES } from '@/lib/db-config';
 
 // GET - Obtener todos los artículos
 export async function GET() {
   try {
     const articulos = await query<Article[]>(
-      'SELECT * FROM articulos WHERE activo = true ORDER BY codigo_articulo'
+      `SELECT * FROM ${TABLES.ARTICULOS} ORDER BY articulo`
     );
-    return NextResponse.json(articulos);
+    
+    // Calcular valor_total para cada artículo
+    const articulosConTotal = articulos.map(art => ({
+      ...art,
+      valor_total: (art.existencia || 0) * (art.valor || 0)
+    }));
+    
+    return NextResponse.json(articulosConTotal);
   } catch (error) {
     console.error('Error al obtener artículos:', error);
     return NextResponse.json(
@@ -23,8 +31,7 @@ export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
     const {
-      id,
-      codigo_articulo,
+      articulo,
       descripcion,
       existencia,
       cantidad_minima,
@@ -32,24 +39,19 @@ export async function POST(request: NextRequest) {
       valor,
     } = body;
 
-    // Calcular valor_total
-    const valor_total = (existencia || 0) * (valor || 0);
-
     const sql = `
-      INSERT INTO articulos 
-      (id, codigo_articulo, descripcion, existencia, cantidad_minima, unidad, valor, valor_total, activo)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, true)
+      INSERT INTO ${TABLES.ARTICULOS} 
+      (articulo, descripcion, existencia, cantidad_minima, unidad, valor)
+      VALUES (?, ?, ?, ?, ?, ?)
     `;
 
     await query(sql, [
-      id,
-      codigo_articulo,
-      descripcion,
+      articulo,
+      descripcion || null,
       existencia || 0,
       cantidad_minima || 0,
-      unidad,
+      unidad || 'UNIDAD',
       valor || 0,
-      valor_total,
     ]);
 
     return NextResponse.json({
@@ -87,27 +89,8 @@ export async function PUT(request: NextRequest) {
       );
     }
 
-    // Si se actualiza existencia o valor, recalcular valor_total
-    if (updates.existencia !== undefined || updates.valor !== undefined) {
-      const [articulo]: any = await query(
-        'SELECT existencia, valor FROM articulos WHERE id = ?',
-        [id]
-      );
-
-      if (!articulo) {
-        return NextResponse.json(
-          { error: 'Artículo no encontrado' },
-          { status: 404 }
-        );
-      }
-
-      const existencia =
-        updates.existencia !== undefined
-          ? updates.existencia
-          : articulo.existencia;
-      const valor = updates.valor !== undefined ? updates.valor : articulo.valor;
-      updates.valor_total = existencia * valor;
-    }
+    // Remover valor_total si viene en los updates (no existe en DB)
+    delete updates.valor_total;
 
     // Construir query dinámicamente
     const fields = Object.keys(updates)
@@ -115,7 +98,7 @@ export async function PUT(request: NextRequest) {
       .join(', ');
     const values = [...Object.values(updates), id];
 
-    const sql = `UPDATE articulos SET ${fields} WHERE id = ?`;
+    const sql = `UPDATE ${TABLES.ARTICULOS} SET ${fields} WHERE id = ?`;
     await query(sql, values);
 
     return NextResponse.json({
@@ -131,7 +114,7 @@ export async function PUT(request: NextRequest) {
   }
 }
 
-// DELETE - Eliminar artículo (soft delete)
+// DELETE - Eliminar artículo
 export async function DELETE(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
@@ -144,8 +127,8 @@ export async function DELETE(request: NextRequest) {
       );
     }
 
-    // Soft delete - marcar como inactivo
-    await query('UPDATE articulos SET activo = false WHERE id = ?', [id]);
+    // Eliminar permanentemente
+    await query(`DELETE FROM ${TABLES.ARTICULOS} WHERE id = ?`, [id]);
 
     return NextResponse.json({
       success: true,

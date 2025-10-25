@@ -57,11 +57,11 @@ export async function saveArticles(articles: Article[]): Promise<void> {
   console.warn('saveArticles no se usa con MySQL');
 }
 
-export async function updateArticle(id: string, updates: Partial<Article>): Promise<Article[]> {
+export async function updateArticle(id: number | string, updates: Partial<Article>): Promise<Article[]> {
   try {
     await fetchAPI(`${API_BASE_URL}/articulos`, {
       method: 'PUT',
-      body: JSON.stringify({ id, ...updates }),
+      body: JSON.stringify({ id: Number(id), ...updates }),
     });
     return await getStoredArticles();
   } catch (error) {
@@ -83,9 +83,9 @@ export async function addArticle(article: Article): Promise<Article[]> {
   }
 }
 
-export async function deleteArticle(id: string): Promise<Article[]> {
+export async function deleteArticle(id: number | string): Promise<Article[]> {
   try {
-    await fetchAPI(`${API_BASE_URL}/articulos?id=${id}`, {
+    await fetchAPI(`${API_BASE_URL}/articulos?id=${Number(id)}`, {
       method: 'DELETE',
     });
     return await getStoredArticles();
@@ -123,11 +123,11 @@ export async function addDepartamento(departamento: Departamento): Promise<Depar
   }
 }
 
-export async function updateDepartamento(id: string, updates: Partial<Departamento>): Promise<Departamento[]> {
+export async function updateDepartamento(id: number | string, updates: Partial<Departamento>): Promise<Departamento[]> {
   try {
     await fetchAPI(`${API_BASE_URL}/departamentos`, {
       method: 'PUT',
-      body: JSON.stringify({ id, ...updates }),
+      body: JSON.stringify({ id: Number(id), ...updates }),
     });
     return await getStoredDepartamentos();
   } catch (error) {
@@ -136,9 +136,9 @@ export async function updateDepartamento(id: string, updates: Partial<Departamen
   }
 }
 
-export async function deleteDepartamento(id: string): Promise<Departamento[]> {
+export async function deleteDepartamento(id: number | string): Promise<Departamento[]> {
   try {
-    await fetchAPI(`${API_BASE_URL}/departamentos?id=${id}`, {
+    await fetchAPI(`${API_BASE_URL}/departamentos?id=${Number(id)}`, {
       method: 'DELETE',
     });
     return await getStoredDepartamentos();
@@ -176,11 +176,11 @@ export async function addSolicitudDepartamento(solicitud: SolicitudDepartamento)
   }
 }
 
-export async function updateSolicitudDepartamento(id: string, updates: Partial<SolicitudDepartamento>): Promise<SolicitudDepartamento[]> {
+export async function updateSolicitudDepartamento(id: number | string, updates: Partial<SolicitudDepartamento>): Promise<SolicitudDepartamento[]> {
   try {
     await fetchAPI(`${API_BASE_URL}/solicitudes`, {
       method: 'PUT',
-      body: JSON.stringify({ id, ...updates }),
+      body: JSON.stringify({ id: Number(id), ...updates }),
     });
     return await getStoredSolicitudesDepartamentos();
   } catch (error) {
@@ -189,9 +189,9 @@ export async function updateSolicitudDepartamento(id: string, updates: Partial<S
   }
 }
 
-export async function deleteSolicitudDepartamento(id: string): Promise<SolicitudDepartamento[]> {
+export async function deleteSolicitudDepartamento(id: number | string): Promise<SolicitudDepartamento[]> {
   try {
-    await fetchAPI(`${API_BASE_URL}/solicitudes?id=${id}`, {
+    await fetchAPI(`${API_BASE_URL}/solicitudes?id=${Number(id)}`, {
       method: 'DELETE',
     });
     return await getStoredSolicitudesDepartamentos();
@@ -205,7 +205,9 @@ export async function deleteSolicitudDepartamento(id: string): Promise<Solicitud
 
 export async function getStoredEntradasMercancia(): Promise<EntradaMercancia[]> {
   try {
-    return await fetchAPI<EntradaMercancia[]>(`${API_BASE_URL}/entradas-mercancia`);
+    const data = await fetchAPI<EntradaMercancia[]>(`${API_BASE_URL}/entradas-mercancia`);
+    console.log("Datos de entradas de mercancía:", data); // Debug
+    return Array.isArray(data) ? data : [];
   } catch (error) {
     console.error("Error al obtener entradas mercancía:", error);
     return [];
@@ -230,12 +232,10 @@ export async function addEntradaMercancia(entrada: EntradaMercancia): Promise<En
 }
 
 // ==================== AUTORIZACION SOLICITUDES ====================
-// Nota: Estas funcionan con el mismo endpoint de solicitudes, solo cambian el estado
 
 export async function getStoredAutorizacionSolicitudes(): Promise<AutorizacionSolicitud[]> {
   try {
-    const solicitudes = await fetchAPI<SolicitudDepartamento[]>(`${API_BASE_URL}/solicitudes`);
-    return solicitudes.filter(s => s.estado === 'En Autorización') as any[];
+    return await fetchAPI<AutorizacionSolicitud[]>(`${API_BASE_URL}/autorizar-solicitudes`);
   } catch (error) {
     console.error("Error al obtener autorizaciones:", error);
     return [];
@@ -248,9 +248,9 @@ export async function saveAutorizacionSolicitudes(solicitudes: AutorizacionSolic
 
 export async function addAutorizacionSolicitud(solicitud: AutorizacionSolicitud): Promise<AutorizacionSolicitud[]> {
   try {
-    await fetchAPI(`${API_BASE_URL}/solicitudes`, {
+    await fetchAPI(`${API_BASE_URL}/autorizar-solicitudes`, {
       method: 'POST',
-      body: JSON.stringify({ ...solicitud, estado: 'En Autorización' }),
+      body: JSON.stringify(solicitud),
     });
     return await getStoredAutorizacionSolicitudes();
   } catch (error) {
@@ -259,9 +259,9 @@ export async function addAutorizacionSolicitud(solicitud: AutorizacionSolicitud)
   }
 }
 
-export async function deleteAutorizacionSolicitud(id: string): Promise<AutorizacionSolicitud[]> {
+export async function deleteAutorizacionSolicitud(id: number | string): Promise<AutorizacionSolicitud[]> {
   try {
-    await fetchAPI(`${API_BASE_URL}/solicitudes?id=${id}`, {
+    await fetchAPI(`${API_BASE_URL}/autorizar-solicitudes?id=${Number(id)}`, {
       method: 'DELETE',
     });
     return await getStoredAutorizacionSolicitudes();
@@ -275,8 +275,7 @@ export async function deleteAutorizacionSolicitud(id: string): Promise<Autorizac
 
 export async function getStoredSolicitudesAprobadas(): Promise<SolicitudAprobada[]> {
   try {
-    const solicitudes = await fetchAPI<SolicitudDepartamento[]>(`${API_BASE_URL}/solicitudes`);
-    return solicitudes.filter(s => s.estado === 'Aprobada') as any[];
+    return await fetchAPI<SolicitudAprobada[]>(`${API_BASE_URL}/solicitudes-aprobadas`);
   } catch (error) {
     console.error("Error al obtener solicitudes aprobadas:", error);
     return [];
@@ -289,9 +288,9 @@ export async function saveSolicitudesAprobadas(solicitudes: SolicitudAprobada[])
 
 export async function addSolicitudAprobada(solicitud: SolicitudAprobada): Promise<SolicitudAprobada[]> {
   try {
-    await fetchAPI(`${API_BASE_URL}/solicitudes`, {
+    await fetchAPI(`${API_BASE_URL}/solicitudes-aprobadas`, {
       method: 'POST',
-      body: JSON.stringify({ ...solicitud, estado: 'Aprobada' }),
+      body: JSON.stringify(solicitud),
     });
     return await getStoredSolicitudesAprobadas();
   } catch (error) {
@@ -300,9 +299,9 @@ export async function addSolicitudAprobada(solicitud: SolicitudAprobada): Promis
   }
 }
 
-export async function deleteSolicitudAprobada(id: string): Promise<SolicitudAprobada[]> {
+export async function deleteSolicitudAprobada(id: number | string): Promise<SolicitudAprobada[]> {
   try {
-    await fetchAPI(`${API_BASE_URL}/solicitudes?id=${id}`, {
+    await fetchAPI(`${API_BASE_URL}/solicitudes-aprobadas?id=${Number(id)}`, {
       method: 'DELETE',
     });
     return await getStoredSolicitudesAprobadas();
@@ -313,12 +312,10 @@ export async function deleteSolicitudAprobada(id: string): Promise<SolicitudApro
 }
 
 // ==================== SOLICITUDES GESTIONADAS ====================
-// Nota: Puedes crear un endpoint específico o usar filtros
 
 export async function getStoredSolicitudesGestionadas(): Promise<SolicitudGestionada[]> {
   try {
-    const solicitudes = await fetchAPI<SolicitudDepartamento[]>(`${API_BASE_URL}/solicitudes`);
-    return solicitudes.filter(s => s.estado === 'En Gestión') as any[];
+    return await fetchAPI<SolicitudGestionada[]>(`${API_BASE_URL}/solicitudes-gestionadas`);
   } catch (error) {
     console.error("Error al obtener solicitudes gestionadas:", error);
     return [];
@@ -331,9 +328,9 @@ export async function saveSolicitudesGestionadas(solicitudes: SolicitudGestionad
 
 export async function addSolicitudGestionada(solicitud: SolicitudGestionada): Promise<SolicitudGestionada[]> {
   try {
-    await fetchAPI(`${API_BASE_URL}/solicitudes`, {
+    await fetchAPI(`${API_BASE_URL}/solicitudes-gestionadas`, {
       method: 'POST',
-      body: JSON.stringify({ ...solicitud, estado: 'En Gestión' }),
+      body: JSON.stringify(solicitud),
     });
     return await getStoredSolicitudesGestionadas();
   } catch (error) {
@@ -342,9 +339,9 @@ export async function addSolicitudGestionada(solicitud: SolicitudGestionada): Pr
   }
 }
 
-export async function deleteSolicitudGestionada(id: string): Promise<SolicitudGestionada[]> {
+export async function deleteSolicitudGestionada(id: number | string): Promise<SolicitudGestionada[]> {
   try {
-    await fetchAPI(`${API_BASE_URL}/solicitudes?id=${id}`, {
+    await fetchAPI(`${API_BASE_URL}/solicitudes-gestionadas?id=${Number(id)}`, {
       method: 'DELETE',
     });
     return await getStoredSolicitudesGestionadas();
@@ -358,8 +355,7 @@ export async function deleteSolicitudGestionada(id: string): Promise<SolicitudGe
 
 export async function getStoredSolicitudesDespachadas(): Promise<SolicitudDespachada[]> {
   try {
-    const solicitudes = await fetchAPI<SolicitudDepartamento[]>(`${API_BASE_URL}/solicitudes`);
-    return solicitudes.filter(s => s.estado === 'Despachada') as any[];
+    return await fetchAPI<SolicitudDespachada[]>(`${API_BASE_URL}/solicitudes-despachadas`);
   } catch (error) {
     console.error("Error al obtener solicitudes despachadas:", error);
     return [];
@@ -372,9 +368,9 @@ export async function saveSolicitudesDespachadas(solicitudes: SolicitudDespachad
 
 export async function addSolicitudDespachada(solicitud: SolicitudDespachada): Promise<SolicitudDespachada[]> {
   try {
-    await fetchAPI(`${API_BASE_URL}/solicitudes`, {
+    await fetchAPI(`${API_BASE_URL}/solicitudes-despachadas`, {
       method: 'POST',
-      body: JSON.stringify({ ...solicitud, estado: 'Despachada' }),
+      body: JSON.stringify(solicitud),
     });
     return await getStoredSolicitudesDespachadas();
   } catch (error) {
@@ -404,8 +400,14 @@ export async function getNextNumeroEntrada(): Promise<string> {
     const currentYear = new Date().getFullYear();
     const entradas = await getStoredEntradasMercancia();
 
+    // Verificar que entradas sea un array válido
+    if (!Array.isArray(entradas)) {
+      console.error('Entradas no es un array válido:', entradas);
+      return `EM-${currentYear}-0001`;
+    }
+
     const entradasDelAno = entradas.filter((e) =>
-      e.numero_entrada.includes(`-${currentYear}-`)
+      e && e.numero_entrada && e.numero_entrada.includes(`-${currentYear}-`)
     );
 
     if (entradasDelAno.length === 0) {
@@ -414,6 +416,7 @@ export async function getNextNumeroEntrada(): Promise<string> {
 
     const numeros = entradasDelAno
       .map((e) => {
+        if (!e || !e.numero_entrada) return 0;
         const match = e.numero_entrada.match(/EM-\d{4}-(\d{4})/);
         return match ? parseInt(match[1], 10) : 0;
       })

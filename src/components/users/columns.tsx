@@ -38,11 +38,11 @@ export const getColumns = ({ onRoleChange, onPasswordChange, onDeleteUser, onEdi
         return (
             <div className="flex items-center gap-3">
                 <Avatar className="h-9 w-9">
-                    <AvatarImage src={user.avatar} alt={user.name} />
-                    <AvatarFallback>{getInitials(user.name)}</AvatarFallback>
+                    <AvatarImage src={user.avatar} alt={user.nombre} />
+                    <AvatarFallback>{getInitials(user.nombre)}</AvatarFallback>
                 </Avatar>
                 <div className="flex flex-col">
-                    <span className="font-medium">{user.name}</span>
+                    <span className="font-medium">{user.nombre}</span>
                     <span className="text-xs text-muted-foreground">{user.email}</span>
                 </div>
             </div>
@@ -62,7 +62,7 @@ export const getColumns = ({ onRoleChange, onPasswordChange, onDeleteUser, onEdi
 
         return (
             <Select 
-                defaultValue={user.role} 
+                defaultValue={user.rol} 
                 onValueChange={(value: Role) => onRoleChange(user.id, value)}
             >
                 <SelectTrigger className="w-[180px]">
@@ -106,7 +106,7 @@ export const getColumns = ({ onRoleChange, onPasswordChange, onDeleteUser, onEdi
                             <Button
                                 variant="ghost"
                                 size="icon"
-                                onClick={() => onPasswordChange(user.id, user.name)}
+                                onClick={() => onPasswordChange(user.id, user.nombre)}
                             >
                                 <Key className="h-4 w-4" />
                             </Button>
@@ -122,7 +122,7 @@ export const getColumns = ({ onRoleChange, onPasswordChange, onDeleteUser, onEdi
                             <Button
                                 variant="ghost"
                                 size="icon"
-                                onClick={() => onDeleteUser(user.id, user.name)}
+                                onClick={() => onDeleteUser(user.id, user.nombre)}
                                 className="text-destructive hover:text-destructive"
                             >
                                 <Trash2 className="h-4 w-4" />

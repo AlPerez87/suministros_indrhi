@@ -46,7 +46,7 @@ export default function UsersPage() {
   const [editingUser, setEditingUser] = useState<User | null>(null);
   
   React.useEffect(() => {
-    if (!isLoading && user?.role !== 'SuperAdmin') {
+    if (!isLoading && user?.rol !== 'SuperAdmin') {
       toast({
         variant: "destructive",
         title: "Acceso Denegado",
@@ -96,7 +96,7 @@ export default function UsersPage() {
       };
       const updatedUsers = addUserToStorage(user);
       setAllUsers(updatedUsers);
-      toast({ title: 'Usuario Creado', description: `${user.name} ha sido añadido con contraseña.` });
+      toast({ title: 'Usuario Creado', description: `${user.nombre} ha sido añadido con contraseña.` });
     }
   };
 
@@ -148,7 +148,7 @@ export default function UsersPage() {
     onEditUser: handleEditUser,
   }), []);
 
-  if (isLoading || user?.role !== 'SuperAdmin') {
+  if (isLoading || user?.rol !== 'SuperAdmin') {
     return <div>Cargando o redirigiendo...</div>;
   }
 

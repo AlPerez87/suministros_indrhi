@@ -34,7 +34,7 @@ export default function ArticulosPage() {
   const [deletingId, setDeletingId] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!isLoading && user?.role !== 'SuperAdmin' && user?.role !== 'Supply') {
+    if (!isLoading && user?.rol !== 'SuperAdmin' && user?.rol !== 'Supply') {
       toast({
         variant: "destructive",
         title: "Acceso Denegado",
@@ -53,7 +53,7 @@ export default function ArticulosPage() {
   }, []);
 
   if (isLoading) return <div>Cargando...</div>;
-  if (!user || (user.role !== 'SuperAdmin' && user.role !== 'Supply')) {
+  if (!user || (user.rol !== 'SuperAdmin' && user.rol !== 'Supply')) {
     return null;
   }
 
@@ -61,7 +61,7 @@ export default function ArticulosPage() {
     try {
       const newArticulo: Article = {
         id: `art-${Date.now()}`,
-        codigo_articulo: data.codigo_articulo,
+        articulo: data.articulo,
         descripcion: data.descripcion,
         existencia: Number(data.existencia),
         cantidad_minima: Number(data.cantidad_minima),
@@ -79,7 +79,7 @@ export default function ArticulosPage() {
 
       toast({
         title: "Artículo Creado",
-        description: `El artículo ${data.codigo_articulo} ha sido creado exitosamente.`,
+        description: `El artículo ${data.articulo} ha sido creado exitosamente.`,
       });
     } catch (error) {
       toast({
@@ -97,7 +97,7 @@ export default function ArticulosPage() {
       const valor_total = Number(data.valor) * Number(data.existencia);
       
       const updated = await updateArticle(editingArticulo.id, {
-        codigo_articulo: data.codigo_articulo,
+        articulo: data.articulo,
         descripcion: data.descripcion,
         existencia: Number(data.existencia),
         cantidad_minima: Number(data.cantidad_minima),
@@ -113,7 +113,7 @@ export default function ArticulosPage() {
 
       toast({
         title: "Artículo Actualizado",
-        description: `El artículo ${data.codigo_articulo} ha sido actualizado exitosamente.`,
+        description: `El artículo ${data.articulo} ha sido actualizado exitosamente.`,
       });
     } catch (error) {
       toast({
@@ -135,7 +135,7 @@ export default function ArticulosPage() {
 
       toast({
         title: "Artículo Eliminado",
-        description: `El artículo ${articulo?.codigo_articulo} ha sido eliminado exitosamente.`,
+        description: `El artículo ${articulo?.articulo} ha sido eliminado exitosamente.`,
       });
     } catch (error) {
       toast({
@@ -174,7 +174,7 @@ export default function ArticulosPage() {
         
         return {
           id: `art-${Date.now()}-${index}`,
-          codigo_articulo: row.codigo_articulo || '',
+          articulo: row.articulo || '',
           descripcion: row.descripcion || '',
           existencia,
           cantidad_minima: Number(row.cantidad_minima) || 0,
@@ -227,7 +227,7 @@ export default function ArticulosPage() {
               onImport={handleCSVImport}
               title="Importar Artículos desde CSV"
               description="Importa un archivo CSV con los datos de los artículos. Esta acción eliminará todos los datos actuales."
-              expectedHeaders={['codigo_articulo', 'descripcion', 'existencia', 'cantidad_minima', 'unidad', 'valor']}
+              expectedHeaders={['articulo', 'descripcion', 'existencia', 'cantidad_minima', 'unidad', 'valor']}
               dataType="articulos"
             />
           )}

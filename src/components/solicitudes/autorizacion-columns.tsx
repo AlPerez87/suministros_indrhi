@@ -92,10 +92,10 @@ export const getAutorizacionColumns = (props?: ColumnsProps): ColumnDef<Autoriza
     header: "Artículos",
     cell: ({ row }) => {
       const articulos_cantidades = row.getValue("articulos_cantidades") as AutorizacionSolicitud["articulos_cantidades"];
-      const totalCantidad = articulos_cantidades.reduce((sum, item) => sum + item.cantidad, 0);
+      const totalCantidad = articulos_cantidades?.reduce((sum, item) => sum + item.cantidad, 0) || 0;
       return (
         <div className="text-sm">
-          <span className="font-semibold">{articulos_cantidades.length}</span> tipo(s) / 
+          <span className="font-semibold">{articulos_cantidades?.length || 0}</span> tipo(s) /
           <span className="font-semibold ml-1">{totalCantidad}</span> unidades
         </div>
       );

@@ -1,22 +1,22 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { query } from '@/lib/db';
-import { SolicitudDepartamento } from '@/lib/types';
+import { SolicitudDespachada } from '@/lib/types';
 import { TABLES, parseArticulosCantidades, serializeArticulosCantidades } from '@/lib/db-config';
 
-// GET - Obtener todas las solicitudes
+// GET - Obtener todas las solicitudes despachadas
 export async function GET() {
   try {
-    // Primero obtener todos los artículos para el mapeo
+    // Obtener artículos para el mapeo
     const articulos = await query<any[]>(
       `SELECT id, articulo, descripcion FROM ${TABLES.ARTICULOS}`
     );
 
-    // Obtener solicitudes
+    // Obtener solicitudes despachadas
     const solicitudes = await query<any[]>(
-      `SELECT * FROM ${TABLES.SOLICITUDES} ORDER BY numero_solicitud DESC`
+      `SELECT * FROM ${TABLES.SOLICITUDES_DESPACHADAS} ORDER BY numero_solicitud DESC`
     );
 
-    // Parsear articulos_cantidades desde formato de texto
+    // Parsear articulos_cantidades
     const solicitudesFormateadas = solicitudes.map((sol) => ({
       ...sol,
       articulos_cantidades: parseArticulosCantidades(sol.articulos_cantidades, articulos),
@@ -25,15 +25,15 @@ export async function GET() {
 
     return NextResponse.json(solicitudesFormateadas);
   } catch (error) {
-    console.error('Error al obtener solicitudes:', error);
+    console.error('Error al obtener solicitudes despachadas:', error);
     return NextResponse.json(
-      { error: 'Error al obtener solicitudes', details: String(error) },
+      { error: 'Error al obtener solicitudes despachadas', details: String(error) },
       { status: 500 }
     );
   }
 }
 
-// POST - Crear nueva solicitud
+// POST - Crear nueva solicitud despachada
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
@@ -43,6 +43,7 @@ export async function POST(request: NextRequest) {
       departamento,
       articulos_cantidades,
       estado,
+      despachado_por,
     } = body;
 
     if (!numero_solicitud || !departamento || !articulos_cantidades) {
@@ -57,13 +58,13 @@ export async function POST(request: NextRequest) {
       `SELECT id, articulo, descripcion FROM ${TABLES.ARTICULOS}`
     );
 
-    // Convertir articulos_cantidades al formato de texto
+    // Convertir al formato de texto
     const articulosText = serializeArticulosCantidades(articulos_cantidades, articulos);
 
     const sql = `
-      INSERT INTO ${TABLES.SOLICITUDES} 
-      (numero_solicitud, fecha, departamento, articulos_cantidades, estado)
-      VALUES (?, ?, ?, ?, ?)
+      INSERT INTO ${TABLES.SOLICITUDES_DESPACHADAS} 
+      (numero_solicitud, fecha, departamento, articulos_cantidades, estado, despachado_por)
+      VALUES (?, ?, ?, ?, ?, ?)
     `;
 
     await query(sql, [
@@ -71,15 +72,16 @@ export async function POST(request: NextRequest) {
       fecha || new Date(),
       departamento,
       articulosText,
-      estado || 'En revisión',
+      estado || 'Despachada',
+      despachado_por || null,
     ]);
 
     return NextResponse.json({
       success: true,
-      message: 'Solicitud creada exitosamente',
+      message: 'Solicitud despachada registrada exitosamente',
     });
   } catch (error: any) {
-    console.error('Error al crear solicitud:', error);
+    console.error('Error al crear solicitud despachada:', error);
 
     if (error.code === 'ER_DUP_ENTRY') {
       return NextResponse.json(
@@ -89,13 +91,13 @@ export async function POST(request: NextRequest) {
     }
 
     return NextResponse.json(
-      { error: 'Error al crear solicitud', details: String(error) },
+      { error: 'Error al crear solicitud despachada', details: String(error) },
       { status: 500 }
     );
   }
 }
 
-// PUT - Actualizar solicitud
+// PUT - Actualizar solicitud despachada
 export async function PUT(request: NextRequest) {
   try {
     const body = await request.json();
@@ -108,7 +110,7 @@ export async function PUT(request: NextRequest) {
       );
     }
 
-    // Si hay articulos_cantidades en las actualizaciones, convertir al formato de texto
+    // Si hay articulos_cantidades, convertir al formato de texto
     if (updates.articulos_cantidades && Array.isArray(updates.articulos_cantidades)) {
       const articulos = await query<any[]>(
         `SELECT id, articulo, descripcion FROM ${TABLES.ARTICULOS}`
@@ -122,23 +124,23 @@ export async function PUT(request: NextRequest) {
       .join(', ');
     const values = [...Object.values(updates), id];
 
-    const sql = `UPDATE ${TABLES.SOLICITUDES} SET ${fields} WHERE id = ?`;
+    const sql = `UPDATE ${TABLES.SOLICITUDES_DESPACHADAS} SET ${fields} WHERE id = ?`;
     await query(sql, values);
 
     return NextResponse.json({
       success: true,
-      message: 'Solicitud actualizada exitosamente',
+      message: 'Solicitud despachada actualizada exitosamente',
     });
   } catch (error) {
-    console.error('Error al actualizar solicitud:', error);
+    console.error('Error al actualizar solicitud despachada:', error);
     return NextResponse.json(
-      { error: 'Error al actualizar solicitud', details: String(error) },
+      { error: 'Error al actualizar solicitud despachada', details: String(error) },
       { status: 500 }
     );
   }
 }
 
-// DELETE - Eliminar solicitud
+// DELETE - Eliminar solicitud despachada
 export async function DELETE(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
@@ -151,17 +153,18 @@ export async function DELETE(request: NextRequest) {
       );
     }
 
-    await query(`DELETE FROM ${TABLES.SOLICITUDES} WHERE id = ?`, [id]);
+    await query(`DELETE FROM ${TABLES.SOLICITUDES_DESPACHADAS} WHERE id = ?`, [id]);
 
     return NextResponse.json({
       success: true,
-      message: 'Solicitud eliminada exitosamente',
+      message: 'Solicitud despachada eliminada exitosamente',
     });
   } catch (error) {
-    console.error('Error al eliminar solicitud:', error);
+    console.error('Error al eliminar solicitud despachada:', error);
     return NextResponse.json(
-      { error: 'Error al eliminar solicitud', details: String(error) },
+      { error: 'Error al eliminar solicitud despachada', details: String(error) },
       { status: 500 }
     );
   }
 }
+

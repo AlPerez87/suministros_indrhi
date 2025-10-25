@@ -50,11 +50,11 @@ export function DetalleModal({ entrada, open, onOpenChange }: DetalleModalProps)
 
   if (!entrada) return null;
 
-  const totalArticulos = entrada.articulos_cantidades.length;
-  const totalCantidad = entrada.articulos_cantidades.reduce(
+  const totalArticulos = entrada.articulos_cantidades?.length || 0;
+  const totalCantidad = entrada.articulos_cantidades?.reduce(
     (sum, item) => sum + item.cantidad,
     0
-  );
+  ) || 0;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -162,14 +162,14 @@ export function DetalleModal({ entrada, open, onOpenChange }: DetalleModalProps)
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {entrada.articulos_cantidades.map((item, index) => {
+                    {entrada.articulos_cantidades?.map((item, index) => {
                       const articulo = articulos.find((a) => a.id === item.articulo_id);
                       if (!articulo) return null;
 
                       return (
                         <TableRow key={index} className="hover:bg-muted/50">
                           <TableCell className="font-mono text-sm font-medium">
-                            {articulo.codigo_articulo}
+                            {articulo.articulo}
                           </TableCell>
                           <TableCell>
                             <div className="flex flex-col">

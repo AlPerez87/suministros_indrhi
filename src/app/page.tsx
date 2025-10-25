@@ -94,7 +94,7 @@ export default function LoginPage() {
                 <SelectContent position="popper">
                   {users.map((user) => (
                     <SelectItem key={user.id} value={user.id}>
-                      {user.name} ({user.role})
+                      {user.nombre} ({user.rol})
                     </SelectItem>
                   ))}
                 </SelectContent>

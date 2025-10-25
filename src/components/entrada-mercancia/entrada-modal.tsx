@@ -92,7 +92,7 @@ export function EntradaModal({
     return `INDRHI-DAF-CD-${currentYear}-${numeroOrdenDigitos}`;
   };
   
-  const numeroOrdenExiste = numeroOrdenDigitos.length === 4 && entradasExistentes.some(
+  const numeroOrdenExiste = numeroOrdenDigitos.length === 4 && (entradasExistentes || []).some(
     (e) => e.numero_orden === getNumeroOrdenCompleto()
   );
   
@@ -109,17 +109,17 @@ export function EntradaModal({
     // Aplicar búsqueda
     const searchLower = searchTerm.toLowerCase();
     return (
-      art.codigo_articulo.toLowerCase().includes(searchLower) ||
+      art.articulo.toLowerCase().includes(searchLower) ||
       art.descripcion.toLowerCase().includes(searchLower)
     );
   });
 
   // Inicializar con el próximo número disponible cuando se abre
   useEffect(() => {
-    if (open && entradasExistentes.length >= 0) {
+    if (open && Array.isArray(entradasExistentes)) {
       // Calcular el próximo número disponible al abrir
       const entradasDelAno = entradasExistentes.filter((e) =>
-        e.numero_orden?.includes(`-${currentYear}-`)
+        e && e.numero_orden && e.numero_orden.includes(`-${currentYear}-`)
       );
 
       let nextNum = "0001";
@@ -358,7 +358,7 @@ export function EntradaModal({
                                 <SelectItem key={art.id} value={art.id}>
                                   <div className="flex flex-col">
                                     <span className="font-mono text-xs text-muted-foreground">
-                                      {art.codigo_articulo}
+                                      {art.articulo}
                                     </span>
                                     <span className="font-medium">{art.descripcion}</span>
                                     <span className="text-xs text-muted-foreground">
@@ -434,7 +434,7 @@ export function EntradaModal({
                       return (
                         <TableRow key={item.articulo_id}>
                           <TableCell className="font-mono text-sm">
-                            {articulo.codigo_articulo}
+                            {articulo.articulo}
                           </TableCell>
                           <TableCell>
                             <div className="flex flex-col">

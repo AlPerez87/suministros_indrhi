@@ -1,12 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { query } from '@/lib/db';
 import { Departamento } from '@/lib/types';
+import { TABLES } from '@/lib/db-config';
 
 // GET - Obtener todos los departamentos
 export async function GET() {
   try {
     const departamentos = await query<Departamento[]>(
-      'SELECT * FROM departamentos WHERE activo = true ORDER BY codigo'
+      `SELECT * FROM ${TABLES.DEPARTAMENTOS} ORDER BY codigo`
     );
     return NextResponse.json(departamentos);
   } catch (error) {
@@ -22,9 +23,9 @@ export async function GET() {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { id, codigo, departamento } = body;
+    const { codigo, departamento } = body;
 
-    if (!id || !codigo || !departamento) {
+    if (!codigo || !departamento) {
       return NextResponse.json(
         { error: 'Faltan campos requeridos' },
         { status: 400 }
@@ -32,11 +33,11 @@ export async function POST(request: NextRequest) {
     }
 
     const sql = `
-      INSERT INTO departamentos (id, codigo, departamento, activo)
-      VALUES (?, ?, ?, true)
+      INSERT INTO ${TABLES.DEPARTAMENTOS} (codigo, departamento)
+      VALUES (?, ?)
     `;
 
-    await query(sql, [id, codigo, departamento]);
+    await query(sql, [codigo, departamento]);
 
     return NextResponse.json({
       success: true,
@@ -79,7 +80,7 @@ export async function PUT(request: NextRequest) {
       .join(', ');
     const values = [...Object.values(updates), id];
 
-    const sql = `UPDATE departamentos SET ${fields} WHERE id = ?`;
+    const sql = `UPDATE ${TABLES.DEPARTAMENTOS} SET ${fields} WHERE id = ?`;
     await query(sql, values);
 
     return NextResponse.json({
@@ -103,7 +104,7 @@ export async function PUT(request: NextRequest) {
   }
 }
 
-// DELETE - Eliminar departamento (soft delete)
+// DELETE - Eliminar departamento
 export async function DELETE(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
@@ -116,8 +117,8 @@ export async function DELETE(request: NextRequest) {
       );
     }
 
-    // Soft delete - marcar como inactivo
-    await query('UPDATE departamentos SET activo = false WHERE id = ?', [id]);
+    // Eliminar permanentemente
+    await query(`DELETE FROM ${TABLES.DEPARTAMENTOS} WHERE id = ?`, [id]);
 
     return NextResponse.json({
       success: true,

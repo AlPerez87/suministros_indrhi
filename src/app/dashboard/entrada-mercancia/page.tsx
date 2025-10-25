@@ -42,7 +42,7 @@ export default function EntradaMercanciaPage() {
   }, []);
 
   useEffect(() => {
-    if (!isLoading && user?.role !== 'SuperAdmin' && user?.role !== 'Supply') {
+    if (!isLoading && user?.rol !== 'SuperAdmin' && user?.rol !== 'Supply') {
       toast({
         variant: "destructive",
         title: "Acceso Denegado",
@@ -55,11 +55,19 @@ export default function EntradaMercanciaPage() {
   // Generar el próximo número de entrada
   const getNextNumeroEntrada = () => {
     const currentYear = new Date().getFullYear();
-    const entradasDelAno = entradas.filter(e => 
-      e.numero_entrada.includes(`-${currentYear}-`)
+
+    // Verificar que entradas sea un array válido
+    if (!Array.isArray(entradas)) {
+      console.log('Entradas no es un array válido, usando número inicial');
+      return `EM-${currentYear}-0001`;
+    }
+
+    const entradasDelAno = entradas.filter(e =>
+      e && e.numero_entrada && e.numero_entrada.includes(`-${currentYear}-`)
     );
-    
+
     const maxNum = entradasDelAno.reduce((max, entrada) => {
+      if (!entrada || !entrada.numero_entrada) return max;
       const match = entrada.numero_entrada.match(/EM-\d{4}-(\d{4})/);
       if (match) {
         const num = parseInt(match[1]);
@@ -126,7 +134,7 @@ export default function EntradaMercanciaPage() {
   });
 
   if (isLoading) return <div>Cargando...</div>;
-  if (!user || (user.role !== 'SuperAdmin' && user.role !== 'Supply')) {
+  if (!user || (user.rol !== 'SuperAdmin' && user.rol !== 'Supply')) {
     return null;
   }
 

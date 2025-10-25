@@ -88,17 +88,17 @@ export default function DashboardPage() {
   }
 
   // Filtrar solicitudes según el rol del usuario
-  const solicitudesFiltradas = user.role === "Department" 
+  const solicitudesFiltradas = user.rol === "Department" 
     ? solicitudes.filter(s => s.creado_por === user.id)
     : solicitudes;
 
   // Estadísticas generales (filtradas según el rol)
   const totalSolicitudes = solicitudesFiltradas.length;
   const solicitudesPendientes = solicitudesFiltradas.filter(s => s.estado === "Pendiente").length;
-  const solicitudesEnAutorizacion = user.role === "Department" 
+  const solicitudesEnAutorizacion = user.rol === "Department" 
     ? solicitudesFiltradas.filter(s => s.estado === "En Autorización").length
     : autorizaciones.length;
-  const totalDespachadas = user.role === "Department"
+  const totalDespachadas = user.rol === "Department"
     ? solicitudesFiltradas.filter(s => s.estado === "Despachada").length
     : solicitudesDespachadas.length;
   
@@ -106,7 +106,7 @@ export default function DashboardPage() {
   const articulosBajoStock = articulos.filter(a => a.existencia <= a.cantidad_minima).length;
   
   // Solicitudes por departamento (solo para SuperAdmin, Admin y Supply)
-  const solicitudesPorDepartamento = (user.role === "SuperAdmin" || user.role === "Admin" || user.role === "Supply")
+  const solicitudesPorDepartamento = (user.rol === "SuperAdmin" || user.rol === "Admin" || user.rol === "Supply")
     ? solicitudes.reduce((acc: { [key: string]: number }, sol) => {
         acc[sol.departamento] = (acc[sol.departamento] || 0) + 1;
         return acc;
@@ -119,7 +119,7 @@ export default function DashboardPage() {
   }));
 
   // Solicitudes por estado (filtrado según el rol)
-  const solicitudesAprobadasFiltradas = user.role === "Department"
+  const solicitudesAprobadasFiltradas = user.rol === "Department"
     ? solicitudesFiltradas.filter(s => s.estado === "Aprobada").length
     : solicitudesAprobadas.length;
 
@@ -148,13 +148,13 @@ export default function DashboardPage() {
   ];
 
   const availableFeatures = features.filter((feature) =>
-    feature.roles.includes(user.role)
+    feature.roles.includes(user.rol)
   );
 
   return (
     <div className="flex flex-col gap-8">
       <PageHeader
-        title={`Te damos la bienvenida, ${user.name}!`}
+        title={`Te damos la bienvenida, ${user.nombre}!`}
         description="Sistema Suministro INDRHI"
       />
 
@@ -205,7 +205,7 @@ export default function DashboardPage() {
           </Card>
         </Link>
 
-        {(user.role === 'SuperAdmin' || user.role === 'Supply') && (
+        {(user.rol === 'SuperAdmin' || user.rol === 'Supply') && (
           <Link href="/dashboard/configuracion/articulos">
             <Card className="cursor-pointer transition-all hover:shadow-lg hover:-translate-y-0.5">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -228,7 +228,7 @@ export default function DashboardPage() {
           </Link>
         )}
 
-        {(user.role === 'SuperAdmin' || user.role === 'Supply') && (
+        {(user.rol === 'SuperAdmin' || user.rol === 'Supply') && (
           <Link href="/dashboard/configuracion/departamentos">
             <Card className="cursor-pointer transition-all hover:shadow-lg hover:-translate-y-0.5">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -274,7 +274,7 @@ export default function DashboardPage() {
       </div>
 
       {/* Gráficos - Solo para SuperAdmin, Admin y Supply */}
-      {(user.role === 'SuperAdmin' || user.role === 'Admin' || user.role === 'Supply') && (
+      {(user.rol === 'SuperAdmin' || user.rol === 'Admin' || user.rol === 'Supply') && (
         <div className="grid gap-4 md:grid-cols-2">
           <Card>
             <CardHeader>

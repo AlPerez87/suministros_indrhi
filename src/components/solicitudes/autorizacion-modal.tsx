@@ -157,7 +157,7 @@ export function AutorizacionModal({
                   return (
                     <TableRow key={index}>
                       <TableCell className="font-mono text-sm font-medium">
-                        {articulo?.codigo_articulo || "N/A"}
+                        {articulo?.articulo || "N/A"}
                       </TableCell>
                       <TableCell>
                         <div className="flex flex-col">

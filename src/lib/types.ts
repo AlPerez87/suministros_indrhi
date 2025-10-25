@@ -8,14 +8,18 @@ export const roleToSpanish: { [key in Role]: string } = {
   Department: "Departamento",
 };
 
+// Tabla usuarios (MySQL estructura actualizada)
 export type User = {
-  id: string;
-  name: string;
+  id: string; // varchar(50) en MySQL
+  nombre: string;
   email: string;
-  role: Role;
-  department: string;
-  avatar: string;
   password: string;
+  rol: Role;
+  departamento: string;
+  avatar: string | null;
+  activo: boolean; // tinyint(1)
+  fecha_creacion?: Date;
+  fecha_actualizacion?: Date;
 };
 
 // Unidades disponibles para artículos
@@ -29,110 +33,109 @@ export type UnidadArticulo =
   | "LIBRA" 
   | "CAJA";
 
-// Tabla artículos
+// Tabla artículos (MySQL estructura actualizada)
 export type Article = {
-  id: string;
-  codigo_articulo: string;
-  descripcion: string;
-  existencia: number;
+  id: number; // AUTO_INCREMENT en MySQL
+  articulo: string; // Código del artículo (ej: ART-001)
+  descripcion: string | null;
+  existencia: number | null;
   cantidad_minima: number;
   unidad: UnidadArticulo;
   valor: number; // Precio unitario en RD$
-  valor_total: number; // valor * existencia
-  // Campos antiguos para compatibilidad
-  name: string;
-  quantityInStock: number;
-  category: string;
+  // Campos calculados (no en DB)
+  valor_total?: number; // valor * existencia
 };
 
-// Tabla departamentos
+// Tabla departamentos (MySQL estructura actualizada)
 export type Departamento = {
-  id: string;
+  id: number; // AUTO_INCREMENT en MySQL
   codigo: string;
   departamento: string;
 };
 
-// Estados de las solicitudes
+// Estados de las solicitudes (basado en estructura MySQL)
 export type EstadoSolicitud = 
+  | "En revisión"
   | "Pendiente" 
-  | "En Autorización" 
   | "Aprobada" 
   | "Rechazada"
-  | "En Gestión"
+  | "Gestionada"
   | "Despachada";
 
 // Artículos y cantidades en solicitudes
+// NOTA: En MySQL se almacena como "NOMBRE_ARTICULO = CANTIDAD"
 export type ArticuloCantidad = {
-  articulo_id: string;
+  articulo_id: number; // ID para frontend
   cantidad: number;
+  articulo_nombre?: string; // Nombre del artículo (usado en MySQL)
 };
 
-// Tabla solicitudes_departamentos
+// Tabla solicitudes (MySQL estructura actualizada)
 export type SolicitudDepartamento = {
-  id: string;
-  numero_solicitud: number; // Autoincrementable
+  id: number; // AUTO_INCREMENT en MySQL
+  numero_solicitud: number; // UNIQUE
   fecha: Date;
   departamento: string;
-  articulos_cantidades: ArticuloCantidad[];
+  articulos_cantidades: ArticuloCantidad[]; // Almacenado como TEXT en MySQL
   estado: EstadoSolicitud;
-  creado_por?: string; // ID del usuario que creó la solicitud
 };
 
-// Tabla autorizacion_solicitudes
+// Tabla autorizar_solicitudes (MySQL estructura actualizada)
 export type AutorizacionSolicitud = {
-  id: string;
-  numero_solicitud: number;
+  id: number; // AUTO_INCREMENT en MySQL
+  numero_solicitud: number; // UNIQUE
   fecha: Date;
   departamento: string;
-  articulos_cantidades: ArticuloCantidad[];
+  articulos_cantidades: ArticuloCantidad[]; // Almacenado como TEXT en MySQL
   estado: EstadoSolicitud;
 };
 
-// Tabla solicitudes_aprobadas
+// Tabla solicitudes_aprobadas (MySQL estructura actualizada)
 export type SolicitudAprobada = {
-  id: string;
-  numero_solicitud: number;
+  id: number; // AUTO_INCREMENT en MySQL
+  numero_solicitud: number; // UNIQUE
   fecha: Date;
   departamento: string;
-  articulos_cantidades: ArticuloCantidad[];
+  articulos_cantidades: ArticuloCantidad[]; // Almacenado como TEXT en MySQL
   estado: EstadoSolicitud;
 };
 
-// Tabla solicitudes_gestionadas
+// Tabla solicitudes_gestionadas (MySQL estructura actualizada)
 export type SolicitudGestionada = {
-  id: string;
-  numero_solicitud: number;
+  id: number; // AUTO_INCREMENT en MySQL
+  numero_solicitud: number; // UNIQUE
   fecha: Date;
   departamento: string;
-  articulos_cantidades: ArticuloCantidad[];
+  articulos_cantidades: ArticuloCantidad[]; // Almacenado como TEXT en MySQL
   estado: EstadoSolicitud;
 };
 
-// Artículos y cantidades en entrada de mercancía
+// Artículos, cantidades y unidades en entrada de mercancía
 export type ArticuloEntrada = {
-  articulo_id: string;
+  articulo_id: number; // ID numérico del artículo
   cantidad: number;
+  unidad: UnidadArticulo;
 };
 
-// Tabla entrada_mercancia
+// Tabla entrada_mercancia (MySQL estructura actualizada)
 export type EntradaMercancia = {
-  id: string;
-  numero_entrada: string; // Formato: EM-2025-0001 (autoincrementable)
+  id: number; // AUTO_INCREMENT en MySQL
+  numero_entrada: string; // Formato: EM-2025-0001 (UNIQUE)
   numero_orden: string; // Formato: INDRHI-DAF-CD-2025-0001
   fecha: Date;
   suplidor: string;
-  articulos_cantidades: ArticuloEntrada[];
+  articulos_cantidades_unidades: ArticuloEntrada[]; // Almacenado como TEXT en MySQL
 };
 
-// Tabla solicitudes_despachadas
+// Tabla solicitudes_despachadas (MySQL estructura actualizada)
 export type SolicitudDespachada = {
-  id: string;
-  numero_solicitud: number;
+  id: number; // AUTO_INCREMENT en MySQL
+  numero_solicitud: number; // UNIQUE
   fecha: Date;
   departamento: string;
-  articulos_cantidades: ArticuloCantidad[];
+  articulos_cantidades: ArticuloCantidad[]; // Almacenado como TEXT en MySQL
   estado: EstadoSolicitud;
-  despachado_por: string; // Nombre del usuario que despachó
+  despachado_por: string | null; // Nombre del usuario que despachó
 };
 
 // Tipos antiguos para compatibilidad con código existente

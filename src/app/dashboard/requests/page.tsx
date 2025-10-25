@@ -56,10 +56,10 @@ export default function RequestsPage() {
 
   // Filtrar según el rol del usuario
   const solicitudesFiltradas = solicitudes.filter((sol) => {
-    if (user.role === "SuperAdmin" || user.role === "Admin" || user.role === "Supply") {
+    if (user.rol === "SuperAdmin" || user.rol === "Admin" || user.rol === "Supply") {
       return true; // Ver todas
     }
-    if (user.role === "Department") {
+    if (user.rol === "Department") {
       // Los usuarios de departamento solo ven sus propias solicitudes
       return sol.creado_por === user.id;
     }
@@ -207,9 +207,9 @@ export default function RequestsPage() {
   };
 
   // Determinar qué acciones están disponibles basadas en el rol del usuario
-  const canEdit = user.role === "Department" || user.role === "SuperAdmin";
-  const canDelete = user.role === "Department" || user.role === "SuperAdmin";
-  const canSendToAuth = user.role === "Department" || user.role === "SuperAdmin";
+  const canEdit = user.rol === "Department" || user.rol === "SuperAdmin";
+  const canDelete = user.rol === "Department" || user.rol === "SuperAdmin";
+  const canSendToAuth = user.rol === "Department" || user.rol === "SuperAdmin";
 
   const columns = getColumns({
     onEdit: canEdit ? handleOpenEdit : undefined,
@@ -218,7 +218,7 @@ export default function RequestsPage() {
     canEdit,
     canDelete,
     canSendToAuth,
-    hideDepartmentColumn: user.role === "Department", // Ocultar columna de departamento para usuarios Department
+    hideDepartmentColumn: user.rol === "Department", // Ocultar columna de departamento para usuarios Department
   });
 
   return (
@@ -227,7 +227,7 @@ export default function RequestsPage() {
         title="Solicitud de artículos"
         description="Visualiza y gestiona las solicitudes de artículos de los departamentos."
       >
-        {(user.role === "Department" || user.role === "SuperAdmin") && (
+        {(user.rol === "Department" || user.rol === "SuperAdmin") && (
           <Button onClick={() => setIsModalOpen(true)}>
             <PlusCircle className="mr-2 h-4 w-4" />
             Nueva Solicitud de Artículos
@@ -238,7 +238,7 @@ export default function RequestsPage() {
       <DataTable 
         columns={columns} 
         data={solicitudesFiltradas} 
-        showDepartmentFilter={user.role !== "Department"}
+        showDepartmentFilter={user.rol !== "Department"}
       />
 
       <SolicitudModal
@@ -246,8 +246,8 @@ export default function RequestsPage() {
         onOpenChange={handleCloseModal}
         solicitud={editingSolicitud}
         onSave={handleModalSave}
-        defaultDepartamento={user.role === "Department" && user.department !== "Administración" ? user.department : undefined}
-        hideExistencias={user.role === "Department"}
+        defaultDepartamento={user.rol === "Department" && user.departamento !== "Administración" ? user.departamento : undefined}
+        hideExistencias={user.rol === "Department"}
       />
 
       <AlertDialog open={!!deletingId} onOpenChange={() => setDeletingId(null)}>

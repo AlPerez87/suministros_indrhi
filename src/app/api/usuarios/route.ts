@@ -1,13 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { query } from '@/lib/db';
 import { User } from '@/lib/types';
+import { TABLES } from '@/lib/db-config';
 
 // GET - Obtener todos los usuarios
 export async function GET() {
   try {
     const usuarios = await query<any[]>(
-      'SELECT id, nombre as name, email, rol as role, departamento as department, avatar, activo FROM usuarios WHERE activo = true ORDER BY nombre'
+      `SELECT * FROM ${TABLES.USUARIOS} ORDER BY nombre`
     );
+    
     return NextResponse.json(usuarios);
   } catch (error) {
     console.error('Error al obtener usuarios:', error);
@@ -22,9 +24,16 @@ export async function GET() {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { id, name, email, password, role, department, avatar } = body;
+    const {
+      nombre,
+      email,
+      password,
+      rol,
+      departamento,
+      avatar,
+    } = body;
 
-    if (!id || !name || !email || !password || !role || !department) {
+    if (!nombre || !email || !password || !rol) {
       return NextResponse.json(
         { error: 'Faltan campos requeridos' },
         { status: 400 }
@@ -32,11 +41,19 @@ export async function POST(request: NextRequest) {
     }
 
     const sql = `
-      INSERT INTO usuarios (id, nombre, email, password, rol, departamento, avatar, activo)
-      VALUES (?, ?, ?, ?, ?, ?, ?, true)
+      INSERT INTO ${TABLES.USUARIOS} 
+      (nombre, email, password, rol, departamento, avatar, activo)
+      VALUES (?, ?, ?, ?, ?, ?, 1)
     `;
 
-    await query(sql, [id, name, email, password, role, department, avatar || null]);
+    await query(sql, [
+      nombre,
+      email,
+      password,
+      rol,
+      departamento || null,
+      avatar || null,
+    ]);
 
     return NextResponse.json({
       success: true,
@@ -63,7 +80,7 @@ export async function POST(request: NextRequest) {
 export async function PUT(request: NextRequest) {
   try {
     const body = await request.json();
-    const { id, name, email, role, department, avatar, password } = body;
+    const { id, ...updates } = body;
 
     if (!id) {
       return NextResponse.json(
@@ -72,28 +89,13 @@ export async function PUT(request: NextRequest) {
       );
     }
 
-    // Construir updates dinámicamente
-    const updates: any = {};
-    if (name !== undefined) updates.nombre = name;
-    if (email !== undefined) updates.email = email;
-    if (role !== undefined) updates.rol = role;
-    if (department !== undefined) updates.departamento = department;
-    if (avatar !== undefined) updates.avatar = avatar;
-    if (password !== undefined) updates.password = password;
-
-    if (Object.keys(updates).length === 0) {
-      return NextResponse.json(
-        { error: 'No hay campos para actualizar' },
-        { status: 400 }
-      );
-    }
-
+    // Construir query dinámicamente
     const fields = Object.keys(updates)
       .map((key) => `${key} = ?`)
       .join(', ');
     const values = [...Object.values(updates), id];
 
-    const sql = `UPDATE usuarios SET ${fields} WHERE id = ?`;
+    const sql = `UPDATE ${TABLES.USUARIOS} SET ${fields} WHERE id = ?`;
     await query(sql, values);
 
     return NextResponse.json({
@@ -117,7 +119,7 @@ export async function PUT(request: NextRequest) {
   }
 }
 
-// DELETE - Eliminar usuario (soft delete)
+// DELETE - Eliminar usuario
 export async function DELETE(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
@@ -130,12 +132,12 @@ export async function DELETE(request: NextRequest) {
       );
     }
 
-    // Soft delete - marcar como inactivo
-    await query('UPDATE usuarios SET activo = false WHERE id = ?', [id]);
+    // Desactivar usuario en vez de eliminarlo
+    await query(`UPDATE ${TABLES.USUARIOS} SET activo = 0 WHERE id = ?`, [id]);
 
     return NextResponse.json({
       success: true,
-      message: 'Usuario eliminado exitosamente',
+      message: 'Usuario desactivado exitosamente',
     });
   } catch (error) {
     console.error('Error al eliminar usuario:', error);
@@ -145,4 +147,3 @@ export async function DELETE(request: NextRequest) {
     );
   }
 }
-

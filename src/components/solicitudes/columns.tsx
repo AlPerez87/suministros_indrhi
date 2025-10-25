@@ -84,7 +84,7 @@ export const getColumns = (props?: ColumnsProps): ColumnDef<SolicitudDepartament
         const articulos_cantidades = row.getValue("articulos_cantidades") as SolicitudDepartamento["articulos_cantidades"];
         return (
           <div className="text-xs space-y-1">
-            {articulos_cantidades.map((item, index) => {
+            {articulos_cantidades?.map((item, index) => {
               const articulo = articles.find((a) => a.id === item.articulo_id);
               return (
                 <div key={index} className="flex items-center gap-1">

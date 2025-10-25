@@ -89,7 +89,7 @@ export function SolicitudModal({
     // Aplicar búsqueda
     const searchLower = searchTerm.toLowerCase();
     return (
-      art.codigo_articulo.toLowerCase().includes(searchLower) ||
+      art.articulo.toLowerCase().includes(searchLower) ||
       art.descripcion.toLowerCase().includes(searchLower)
     );
   });
@@ -271,7 +271,7 @@ export function SolicitudModal({
                                 <SelectItem key={art.id} value={art.id}>
                                   <div className="flex flex-col">
                                     <span className="font-mono text-xs text-muted-foreground">
-                                      {art.codigo_articulo}
+                                      {art.articulo}
                                     </span>
                                     <span className="font-medium">{art.descripcion}</span>
                                     {!hideExistencias && (
@@ -351,7 +351,7 @@ export function SolicitudModal({
                       return (
                         <TableRow key={item.articulo_id}>
                           <TableCell className="font-mono text-sm">
-                            {articulo.codigo_articulo}
+                            {articulo.articulo}
                           </TableCell>
                           <TableCell>
                             <div className="flex flex-col">

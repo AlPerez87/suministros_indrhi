@@ -44,7 +44,7 @@ export const getColumns = (meta: ColumnMeta): ColumnDef<EntradaMercancia>[] => [
     accessorKey: "articulos_cantidades",
     header: "Artículos",
     cell: ({ row }) => {
-      const cantidad = row.original.articulos_cantidades.length;
+      const cantidad = row.original.articulos_cantidades?.length || 0;
       return (
         <div className="text-muted-foreground">
           {cantidad} {cantidad === 1 ? "artículo" : "artículos"}

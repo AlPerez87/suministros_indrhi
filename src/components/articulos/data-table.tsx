@@ -39,7 +39,7 @@ export function DataTable<TData, TValue>({
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
   const [sorting, setSorting] = React.useState<SortingState>([
     {
-      id: "codigo_articulo",
+      id: "articulo",
       desc: false, // Orden ascendente
     },
   ]);
@@ -48,6 +48,7 @@ export function DataTable<TData, TValue>({
   // Filtrar datos según existencia baja si está activado el filtro
   const filteredData = React.useMemo(() => {
     if (!showLowStock) return data;
+    if (!Array.isArray(data)) return [];
     return data.filter((item: any) => {
       const article = item as Article;
       return article.existencia <= article.cantidad_minima;
@@ -71,6 +72,7 @@ export function DataTable<TData, TValue>({
 
   // Contar artículos con existencia baja
   const lowStockCount = React.useMemo(() => {
+    if (!Array.isArray(data)) return 0;
     return data.filter((item: any) => {
       const article = item as Article;
       return article.existencia <= article.cantidad_minima;
@@ -90,9 +92,9 @@ export function DataTable<TData, TValue>({
         />
         <Input
           placeholder="Filtrar por código..."
-          value={(table.getColumn("codigo_articulo")?.getFilterValue() as string) ?? ""}
+          value={(table.getColumn("articulo")?.getFilterValue() as string) ?? ""}
           onChange={(event) =>
-            table.getColumn("codigo_articulo")?.setFilterValue(event.target.value)
+            table.getColumn("articulo")?.setFilterValue(event.target.value)
           }
           className="max-w-sm"
         />

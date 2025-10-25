@@ -65,7 +65,7 @@ export function NotificationsBell() {
   }, [updateSolicitudes]);
 
   // Solo mostrar para Supply y SuperAdmin
-  if (!user || (user.role !== "Supply" && user.role !== "SuperAdmin")) {
+  if (!user || (user.rol !== "Supply" && user.rol !== "SuperAdmin")) {
     return null;
   }
 

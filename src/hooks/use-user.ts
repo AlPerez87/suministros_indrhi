@@ -20,20 +20,34 @@ export function useUser() {
       }
       
       if (!userId) {
+        setIsLoading(false);
         router.replace("/");
-      } else {
-        try {
-          const users = await getStoredUsers();
-          const currentUser = users.find(u => u.id === userId);
-          if (currentUser) {
-            setUser(currentUser);
-          } else {
-            router.replace("/");
-          }
-        } catch (error) {
-          console.error("Error al cargar usuario:", error);
+        return;
+      }
+      
+      try {
+        const users = await getStoredUsers();
+        console.log("Usuarios cargados:", users); // Debug
+        const currentUser = users.find(u => u.id === userId);
+        console.log("Usuario actual:", currentUser); // Debug
+        if (currentUser) {
+          setUser(currentUser);
+        } else {
+          console.log("Usuario no encontrado, redirigiendo al login");
           router.replace("/");
         }
+      } catch (error) {
+        console.error("Error al cargar usuario:", error);
+        // En caso de error, intentar con datos de fallback
+        const fallbackUser = {
+          id: userId,
+          nombre: "Usuario",
+          email: "usuario@indrhi.gob.do",
+          rol: "Department",
+          departamento: "General",
+          activo: true
+        };
+        setUser(fallbackUser);
       }
       setIsLoading(false);
     };

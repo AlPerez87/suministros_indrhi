@@ -59,7 +59,7 @@ export default function SolicitudesAprobadasPage() {
   }, []);
 
   useEffect(() => {
-    if (!isLoading && user?.role !== "SuperAdmin" && user?.role !== "Admin" && user?.role !== "Supply") {
+    if (!isLoading && user?.rol !== "SuperAdmin" && user?.rol !== "Admin" && user?.rol !== "Supply") {
       toast({
         variant: "destructive",
         title: "Acceso Denegado",
@@ -70,7 +70,7 @@ export default function SolicitudesAprobadasPage() {
   }, [user, isLoading, router, toast]);
 
   if (isLoading) return <div>Cargando...</div>;
-  if (!user || (user.role !== "SuperAdmin" && user.role !== "Admin" && user.role !== "Supply")) {
+  if (!user || (user.rol !== "SuperAdmin" && user.rol !== "Admin" && user.rol !== "Supply")) {
     return null;
   }
 
@@ -206,7 +206,7 @@ export default function SolicitudesAprobadasPage() {
                       <div key={index} className="p-3 space-y-1">
                         <div className="font-medium">{articulo?.descripcion}</div>
                         <div className="text-sm text-muted-foreground">
-                          Código: {articulo?.codigo_articulo}
+                          Código: {articulo?.articulo}
                         </div>
                         <div className="flex items-center justify-between mt-2">
                           <span className="text-sm">Cantidad Solicitada:</span>
@@ -250,7 +250,7 @@ export default function SolicitudesAprobadasPage() {
                         <div>
                           <div className="font-medium">{articulo?.descripcion}</div>
                           <div className="text-sm text-muted-foreground">
-                            Código: {articulo?.codigo_articulo}
+                            Código: {articulo?.articulo}
                           </div>
                         </div>
 

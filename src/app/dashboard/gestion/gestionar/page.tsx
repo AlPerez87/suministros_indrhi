@@ -58,7 +58,7 @@ export default function SolicitudesGestionadasPage() {
   }, []);
 
   useEffect(() => {
-    if (!isLoading && user?.role !== "SuperAdmin" && user?.role !== "Admin" && user?.role !== "Supply") {
+    if (!isLoading && user?.rol !== "SuperAdmin" && user?.rol !== "Admin" && user?.rol !== "Supply") {
       toast({
         variant: "destructive",
         title: "Acceso Denegado",
@@ -69,7 +69,7 @@ export default function SolicitudesGestionadasPage() {
   }, [user, isLoading, router, toast]);
 
   if (isLoading) return <div>Cargando...</div>;
-  if (!user || (user.role !== "SuperAdmin" && user.role !== "Admin" && user.role !== "Supply")) {
+  if (!user || (user.rol !== "SuperAdmin" && user.rol !== "Admin" && user.rol !== "Supply")) {
     return null;
   }
 
@@ -99,7 +99,7 @@ export default function SolicitudesGestionadasPage() {
       departamento: selectedSolicitud.departamento,
       articulos_cantidades: selectedSolicitud.articulos_cantidades,
       estado: "Despachada",
-      despachado_por: user.name,
+      despachado_por: user.nombre,
     };
 
     addSolicitudDespachada(solicitudDespachada);
@@ -226,7 +226,7 @@ export default function SolicitudesGestionadasPage() {
                             className="border-t hover:bg-muted/50 transition-colors"
                           >
                             <td className="p-3 font-mono text-sm">
-                              {articulo?.codigo_articulo || "N/A"}
+                              {articulo?.articulo || "N/A"}
                             </td>
                             <td className="p-3">
                               {articulo?.descripcion || "Artículo desconocido"}
@@ -285,7 +285,7 @@ export default function SolicitudesGestionadasPage() {
                 </div>
                 <div className="flex justify-between pt-2 border-t mt-2">
                   <span className="text-muted-foreground">Despachado por:</span>
-                  <span className="font-semibold">{user.name}</span>
+                  <span className="font-semibold">{user.nombre}</span>
                 </div>
               </div>
 
