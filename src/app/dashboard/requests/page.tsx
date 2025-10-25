@@ -1,16 +1,15 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useUser } from "@/hooks/use-user";
 import {
   getStoredSolicitudesDepartamentos,
-  saveSolicitudesDepartamentos,
   getNextNumeroSolicitud,
   addAutorizacionSolicitud,
   updateSolicitudDepartamento,
   deleteSolicitudDepartamento,
   addSolicitudDepartamento,
-} from "@/lib/storage";
+} from "@/lib/storage-api";
 import { SolicitudDepartamento, AutorizacionSolicitud } from "@/lib/types";
 import { DataTable } from "@/components/solicitudes/data-table";
 import { getColumns } from "@/components/solicitudes/columns";
@@ -37,9 +36,20 @@ export default function RequestsPage() {
   const [editingSolicitud, setEditingSolicitud] = useState<SolicitudDepartamento | undefined>();
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [sendingToAuthId, setSendingToAuthId] = useState<string | null>(null);
-  const [solicitudes, setSolicitudes] = useState<SolicitudDepartamento[]>(() =>
-    getStoredSolicitudesDepartamentos()
-  );
+  const [solicitudes, setSolicitudes] = useState<SolicitudDepartamento[]>([]);
+
+  useEffect(() => {
+    const fetchSolicitudes = async () => {
+      try {
+        const data = await getStoredSolicitudesDepartamentos();
+        setSolicitudes(Array.isArray(data) ? data : []);
+      } catch (error) {
+        console.error("Error al cargar solicitudes:", error);
+        setSolicitudes([]);
+      }
+    };
+    fetchSolicitudes();
+  }, []);
 
   if (isLoading) return <div>Cargando...</div>;
   if (!user) return null;
@@ -56,87 +66,122 @@ export default function RequestsPage() {
     return false;
   });
 
-  const handleCreateSolicitud = (data: Partial<SolicitudDepartamento>) => {
-    const newSolicitud: SolicitudDepartamento = {
-      id: `sol-dept-${Date.now()}`,
-      numero_solicitud: getNextNumeroSolicitud(),
+  const handleCreateSolicitud = async (data: Partial<SolicitudDepartamento>) => {
+    try {
+      const nextNumber = await getNextNumeroSolicitud();
+      const newSolicitud: SolicitudDepartamento = {
+        id: `sol-dept-${Date.now()}`,
+        numero_solicitud: nextNumber,
       fecha: new Date(),
       departamento: data.departamento!,
       articulos_cantidades: data.articulos_cantidades!,
       estado: "Pendiente",
       creado_por: user.id, // Guardar el ID del usuario que creó la solicitud
-    };
+      };
 
-    const updated = addSolicitudDepartamento(newSolicitud);
-    setSolicitudes(updated);
+      const updated = await addSolicitudDepartamento(newSolicitud);
+      setSolicitudes(updated);
 
-    toast({
-      title: "Solicitud de Artículos Creada",
-      description: `Solicitud de artículos #${newSolicitud.numero_solicitud} creada exitosamente.`,
-    });
+      toast({
+        title: "Solicitud de Artículos Creada",
+        description: `Solicitud de artículos #${newSolicitud.numero_solicitud} creada exitosamente.`,
+      });
+    } catch (error) {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "No se pudo crear la solicitud.",
+      });
+    }
   };
 
-  const handleEditSolicitud = (data: Partial<SolicitudDepartamento>) => {
+  const handleEditSolicitud = async (data: Partial<SolicitudDepartamento>) => {
     if (!editingSolicitud) return;
 
-    const updated = updateSolicitudDepartamento(editingSolicitud.id, {
-      departamento: data.departamento,
-      articulos_cantidades: data.articulos_cantidades,
-    });
+    try {
+      const updated = await updateSolicitudDepartamento(editingSolicitud.id, {
+        departamento: data.departamento,
+        articulos_cantidades: data.articulos_cantidades,
+      });
 
-    setSolicitudes(updated);
-    setEditingSolicitud(undefined);
+      setSolicitudes(updated);
+      setEditingSolicitud(undefined);
 
-    toast({
-      title: "Solicitud de Artículos Actualizada",
-      description: `Solicitud de artículos #${editingSolicitud.numero_solicitud} actualizada exitosamente.`,
-    });
+      toast({
+        title: "Solicitud de Artículos Actualizada",
+        description: `Solicitud de artículos #${editingSolicitud.numero_solicitud} actualizada exitosamente.`,
+      });
+    } catch (error) {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "No se pudo actualizar la solicitud.",
+      });
+    }
   };
 
-  const handleDeleteSolicitud = () => {
+  const handleDeleteSolicitud = async () => {
     if (!deletingId) return;
 
-    const solicitud = solicitudes.find((s) => s.id === deletingId);
-    const updated = deleteSolicitudDepartamento(deletingId);
-    setSolicitudes(updated);
-    setDeletingId(null);
+    try {
+      const solicitud = solicitudes.find((s) => s.id === deletingId);
+      const updated = await deleteSolicitudDepartamento(deletingId);
+      setSolicitudes(updated);
+      setDeletingId(null);
 
-    toast({
-      title: "Solicitud de Artículos Eliminada",
-      description: `Solicitud de artículos #${solicitud?.numero_solicitud} eliminada exitosamente.`,
-    });
+      toast({
+        title: "Solicitud de Artículos Eliminada",
+        description: `Solicitud de artículos #${solicitud?.numero_solicitud} eliminada exitosamente.`,
+      });
+    } catch (error) {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "No se pudo eliminar la solicitud.",
+      });
+      setDeletingId(null);
+    }
   };
 
-  const handleConfirmSendToAuthorization = () => {
+  const handleConfirmSendToAuthorization = async () => {
     if (!sendingToAuthId) return;
 
-    const solicitud = solicitudes.find((s) => s.id === sendingToAuthId);
-    if (!solicitud) return;
+    try {
+      const solicitud = solicitudes.find((s) => s.id === sendingToAuthId);
+      if (!solicitud) return;
 
-    // Actualizar estado de la solicitud en solicitudes_departamentos
-    const updated = updateSolicitudDepartamento(sendingToAuthId, {
-      estado: "En Autorización",
-    });
-    setSolicitudes(updated);
+      // Actualizar estado de la solicitud en solicitudes_departamentos
+      const updated = await updateSolicitudDepartamento(sendingToAuthId, {
+        estado: "En Autorización",
+      });
+      setSolicitudes(updated);
 
-    // Agregar a tabla de autorizaciones
-    const autorizacion: AutorizacionSolicitud = {
-      id: `aut-sol-${Date.now()}`,
-      numero_solicitud: solicitud.numero_solicitud,
-      fecha: solicitud.fecha,
-      departamento: solicitud.departamento,
-      articulos_cantidades: solicitud.articulos_cantidades,
-      estado: "En Autorización",
-    };
+      // Agregar a tabla de autorizaciones
+      const autorizacion: AutorizacionSolicitud = {
+        id: `aut-sol-${Date.now()}`,
+        numero_solicitud: solicitud.numero_solicitud,
+        fecha: solicitud.fecha,
+        departamento: solicitud.departamento,
+        articulos_cantidades: solicitud.articulos_cantidades,
+        estado: "En Autorización",
+      };
 
-    addAutorizacionSolicitud(autorizacion);
+      await addAutorizacionSolicitud(autorizacion);
 
-    toast({
-      title: "Solicitud de Artículos Enviada",
-      description: `Solicitud de artículos #${solicitud.numero_solicitud} enviada a autorización.`,
-    });
+      toast({
+        title: "Solicitud de Artículos Enviada",
+        description: `Solicitud de artículos #${solicitud.numero_solicitud} enviada a autorización.`,
+      });
 
-    setSendingToAuthId(null);
+      setSendingToAuthId(null);
+    } catch (error) {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "No se pudo enviar la solicitud a autorización.",
+      });
+      setSendingToAuthId(null);
+    }
   };
 
   const handleSendToAuthorization = (id: string) => {

@@ -13,7 +13,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { ArticuloEntrada } from "@/lib/types";
-import { getStoredArticles, getStoredEntradasMercancia } from "@/lib/storage";
+import { getStoredArticles, getStoredEntradasMercancia } from "@/lib/storage-api";
 import { Plus, Trash2, Search, Package, AlertCircle } from "lucide-react";
 import {
   Select,
@@ -62,8 +62,29 @@ export function EntradaModal({
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedArticuloId, setSelectedArticuloId] = useState("");
   const [cantidadInput, setCantidadInput] = useState("");
+  const [articulosDisponibles, setArticulosDisponibles] = useState<any[]>([]);
+  const [entradasExistentes, setEntradasExistentes] = useState<any[]>([]);
 
-  const articulosDisponibles = getStoredArticles();
+  // Cargar datos cuando se abre el modal
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const [arts, entradas] = await Promise.all([
+          getStoredArticles(),
+          getStoredEntradasMercancia(),
+        ]);
+        setArticulosDisponibles(Array.isArray(arts) ? arts : []);
+        setEntradasExistentes(Array.isArray(entradas) ? entradas : []);
+      } catch (error) {
+        console.error("Error al cargar datos:", error);
+        setArticulosDisponibles([]);
+        setEntradasExistentes([]);
+      }
+    };
+    if (open) {
+      fetchData();
+    }
+  }, [open]);
   
   // Verificar si el número de orden ya existe
   const getNumeroOrdenCompleto = () => {
@@ -71,7 +92,7 @@ export function EntradaModal({
     return `INDRHI-DAF-CD-${currentYear}-${numeroOrdenDigitos}`;
   };
   
-  const numeroOrdenExiste = numeroOrdenDigitos.length === 4 && getStoredEntradasMercancia().some(
+  const numeroOrdenExiste = numeroOrdenDigitos.length === 4 && entradasExistentes.some(
     (e) => e.numero_orden === getNumeroOrdenCompleto()
   );
   
@@ -95,11 +116,10 @@ export function EntradaModal({
 
   // Inicializar con el próximo número disponible cuando se abre
   useEffect(() => {
-    if (open) {
+    if (open && entradasExistentes.length >= 0) {
       // Calcular el próximo número disponible al abrir
-      const entradasExistentes = getStoredEntradasMercancia();
       const entradasDelAno = entradasExistentes.filter((e) =>
-        e.numero_orden.includes(`-${currentYear}-`)
+        e.numero_orden?.includes(`-${currentYear}-`)
       );
 
       let nextNum = "0001";
@@ -116,7 +136,7 @@ export function EntradaModal({
       }
       
       setNumeroOrdenDigitos(nextNum);
-    } else {
+    } else if (!open) {
       // Resetear formulario cuando se cierra
       setNumeroOrdenDigitos("");
       setFecha(new Date().toISOString().split("T")[0]);
@@ -126,7 +146,7 @@ export function EntradaModal({
       setSelectedArticuloId("");
       setCantidadInput("");
     }
-  }, [open, currentYear]);
+  }, [open, currentYear, entradasExistentes]);
 
   const handleAddArticulo = () => {
     if (!selectedArticuloId || !cantidadInput || parseInt(cantidadInput) <= 0) {

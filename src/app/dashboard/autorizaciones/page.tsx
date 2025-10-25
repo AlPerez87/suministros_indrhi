@@ -8,7 +8,7 @@ import {
   deleteAutorizacionSolicitud,
   updateSolicitudDepartamento,
   addSolicitudAprobada,
-} from "@/lib/storage";
+} from "@/lib/storage-api";
 import { AutorizacionSolicitud, SolicitudAprobada } from "@/lib/types";
 import { DataTable } from "@/components/solicitudes/data-table";
 import { getAutorizacionColumns } from "@/components/solicitudes/autorizacion-columns";
@@ -32,14 +32,25 @@ export default function AutorizacionesPage() {
   const { user, isLoading } = useUser();
   const router = useRouter();
   const { toast } = useToast();
-  const [solicitudes, setSolicitudes] = useState<AutorizacionSolicitud[]>(() =>
-    getStoredAutorizacionSolicitudes()
-  );
+  const [solicitudes, setSolicitudes] = useState<AutorizacionSolicitud[]>([]);
   const [selectedSolicitud, setSelectedSolicitud] = useState<AutorizacionSolicitud | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedRows, setSelectedRows] = useState<AutorizacionSolicitud[]>([]);
   const [showBulkApproveDialog, setShowBulkApproveDialog] = useState(false);
   const [showBulkRejectDialog, setShowBulkRejectDialog] = useState(false);
+
+  useEffect(() => {
+    const fetchSolicitudes = async () => {
+      try {
+        const data = await getStoredAutorizacionSolicitudes();
+        setSolicitudes(Array.isArray(data) ? data : []);
+      } catch (error) {
+        console.error("Error al cargar solicitudes:", error);
+        setSolicitudes([]);
+      }
+    };
+    fetchSolicitudes();
+  }, []);
 
   useEffect(() => {
     if (!isLoading && user?.role !== "SuperAdmin" && user?.role !== "Admin") {
@@ -62,59 +73,75 @@ export default function AutorizacionesPage() {
     setIsModalOpen(true);
   };
 
-  const handleApprove = (solicitud: AutorizacionSolicitud) => {
-    // 1. Eliminar de autorizaciones
-    const updatedAutorizaciones = deleteAutorizacionSolicitud(solicitud.id);
-    setSolicitudes(updatedAutorizaciones);
+  const handleApprove = async (solicitud: AutorizacionSolicitud) => {
+    try {
+      // 1. Eliminar de autorizaciones
+      const updatedAutorizaciones = await deleteAutorizacionSolicitud(solicitud.id);
+      setSolicitudes(Array.isArray(updatedAutorizaciones) ? updatedAutorizaciones : []);
 
-    // 2. Actualizar estado en solicitudes_departamentos
-    updateSolicitudDepartamento(
-      // Buscar el ID original de la solicitud en solicitudes_departamentos
-      // Por simplicidad, usaremos el mismo ID base
-      solicitud.id.replace("aut-sol-", "sol-dept-"),
-      { estado: "Aprobada" }
-    );
+      // 2. Actualizar estado en solicitudes_departamentos
+      await updateSolicitudDepartamento(
+        // Buscar el ID original de la solicitud en solicitudes_departamentos
+        // Por simplicidad, usaremos el mismo ID base
+        solicitud.id.replace("aut-sol-", "sol-dept-"),
+        { estado: "Aprobada" }
+      );
 
-    // 3. Agregar a solicitudes_aprobadas
-    const solicitudAprobada: SolicitudAprobada = {
-      id: `sol-apr-${Date.now()}`,
-      numero_solicitud: solicitud.numero_solicitud,
-      fecha: solicitud.fecha,
-      departamento: solicitud.departamento,
-      articulos_cantidades: solicitud.articulos_cantidades,
-      estado: "Aprobada",
-    };
+      // 3. Agregar a solicitudes_aprobadas
+      const solicitudAprobada: SolicitudAprobada = {
+        id: `sol-apr-${Date.now()}`,
+        numero_solicitud: solicitud.numero_solicitud,
+        fecha: solicitud.fecha,
+        departamento: solicitud.departamento,
+        articulos_cantidades: solicitud.articulos_cantidades,
+        estado: "Aprobada",
+      };
 
-    addSolicitudAprobada(solicitudAprobada);
+      await addSolicitudAprobada(solicitudAprobada);
 
-    toast({
-      title: "Solicitud Aprobada",
-      description: `Solicitud #${solicitud.numero_solicitud} ha sido aprobada exitosamente.`,
-    });
+      toast({
+        title: "Solicitud Aprobada",
+        description: `Solicitud #${solicitud.numero_solicitud} ha sido aprobada exitosamente.`,
+      });
+    } catch (error) {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "No se pudo aprobar la solicitud.",
+      });
+    }
   };
 
-  const handleReject = (solicitud: AutorizacionSolicitud) => {
-    // 1. Eliminar de autorizaciones
-    const updatedAutorizaciones = deleteAutorizacionSolicitud(solicitud.id);
-    setSolicitudes(updatedAutorizaciones);
+  const handleReject = async (solicitud: AutorizacionSolicitud) => {
+    try {
+      // 1. Eliminar de autorizaciones
+      const updatedAutorizaciones = await deleteAutorizacionSolicitud(solicitud.id);
+      setSolicitudes(Array.isArray(updatedAutorizaciones) ? updatedAutorizaciones : []);
 
-    // 2. Actualizar estado en solicitudes_departamentos a "Rechazada"
-    updateSolicitudDepartamento(
-      solicitud.id.replace("aut-sol-", "sol-dept-"),
-      { estado: "Rechazada" }
-    );
+      // 2. Actualizar estado en solicitudes_departamentos a "Rechazada"
+      await updateSolicitudDepartamento(
+        solicitud.id.replace("aut-sol-", "sol-dept-"),
+        { estado: "Rechazada" }
+      );
 
-    toast({
-      title: "Solicitud Rechazada",
-      description: `Solicitud #${solicitud.numero_solicitud} ha sido rechazada.`,
-      variant: "destructive",
-    });
+      toast({
+        title: "Solicitud Rechazada",
+        description: `Solicitud #${solicitud.numero_solicitud} ha sido rechazada.`,
+        variant: "destructive",
+      });
+    } catch (error) {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "No se pudo rechazar la solicitud.",
+      });
+    }
   };
 
-  const handleBulkApprove = () => {
-    selectedRows.forEach((solicitud) => {
-      handleApprove(solicitud);
-    });
+  const handleBulkApprove = async () => {
+    for (const solicitud of selectedRows) {
+      await handleApprove(solicitud);
+    }
 
     toast({
       title: "Solicitudes Aprobadas",
@@ -125,10 +152,10 @@ export default function AutorizacionesPage() {
     setShowBulkApproveDialog(false);
   };
 
-  const handleBulkReject = () => {
-    selectedRows.forEach((solicitud) => {
-      handleReject(solicitud);
-    });
+  const handleBulkReject = async () => {
+    for (const solicitud of selectedRows) {
+      await handleReject(solicitud);
+    }
 
     toast({
       title: "Solicitudes Rechazadas",

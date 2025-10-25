@@ -8,7 +8,7 @@ import {
   addEntradaMercancia,
   getStoredArticles,
   updateArticle
-} from "@/lib/storage";
+} from "@/lib/storage-api";
 import { EntradaMercancia, ArticuloEntrada } from "@/lib/types";
 import { DataTable } from "@/components/entrada-mercancia/data-table";
 import { getColumns } from "@/components/entrada-mercancia/columns";
@@ -23,12 +23,23 @@ export default function EntradaMercanciaPage() {
   const { user, isLoading } = useUser();
   const router = useRouter();
   const { toast } = useToast();
-  const [entradas, setEntradas] = useState<EntradaMercancia[]>(() => 
-    getStoredEntradasMercancia()
-  );
+  const [entradas, setEntradas] = useState<EntradaMercancia[]>([]);
   const [modalOpen, setModalOpen] = useState(false);
   const [detalleModalOpen, setDetalleModalOpen] = useState(false);
   const [selectedEntrada, setSelectedEntrada] = useState<EntradaMercancia | null>(null);
+
+  useEffect(() => {
+    const fetchEntradas = async () => {
+      try {
+        const data = await getStoredEntradasMercancia();
+        setEntradas(Array.isArray(data) ? data : []);
+      } catch (error) {
+        console.error("Error al cargar entradas:", error);
+        setEntradas([]);
+      }
+    };
+    fetchEntradas();
+  }, []);
 
   useEffect(() => {
     if (!isLoading && user?.role !== 'SuperAdmin' && user?.role !== 'Supply') {

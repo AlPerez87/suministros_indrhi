@@ -6,7 +6,7 @@ import { useUser } from "@/hooks/use-user";
 import {
   getStoredSolicitudesDespachadas,
   getStoredArticles,
-} from "@/lib/storage";
+} from "@/lib/storage-api";
 import { SolicitudDespachada } from "@/lib/types";
 import { useToast } from "@/hooks/use-toast";
 import { PageHeader } from "@/components/page-header";
@@ -37,14 +37,29 @@ export default function SolicitudesDespachadasPage() {
   const { user, isLoading } = useUser();
   const router = useRouter();
   const { toast } = useToast();
-  const [solicitudes, setSolicitudes] = useState<SolicitudDespachada[]>(() => 
-    getStoredSolicitudesDespachadas()
-  );
+  const [solicitudes, setSolicitudes] = useState<SolicitudDespachada[]>([]);
   const [selectedSolicitud, setSelectedSolicitud] = useState<SolicitudDespachada | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [filtro, setFiltro] = useState("");
+  const [allArticles, setAllArticles] = useState<any[]>([]);
 
-  const allArticles = getStoredArticles();
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const [solData, artData] = await Promise.all([
+          getStoredSolicitudesDespachadas(),
+          getStoredArticles(),
+        ]);
+        setSolicitudes(Array.isArray(solData) ? solData : []);
+        setAllArticles(Array.isArray(artData) ? artData : []);
+      } catch (error) {
+        console.error("Error al cargar datos:", error);
+        setSolicitudes([]);
+        setAllArticles([]);
+      }
+    };
+    fetchData();
+  }, []);
 
   useEffect(() => {
     if (!isLoading && user?.role !== "SuperAdmin" && user?.role !== "Admin" && user?.role !== "Supply") {

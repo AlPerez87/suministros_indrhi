@@ -20,7 +20,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { SolicitudDepartamento, ArticuloCantidad } from "@/lib/types";
-import { getStoredArticles, getStoredDepartamentos } from "@/lib/storage";
+import { getStoredArticles, getStoredDepartamentos } from "@/lib/storage-api";
 import { Trash2, Plus, Package, Search, FileText } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
@@ -56,9 +56,29 @@ export function SolicitudModal({
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedArticuloId, setSelectedArticuloId] = useState("");
   const [cantidadInput, setCantidadInput] = useState("");
+  const [allArticles, setAllArticles] = useState<any[]>([]);
+  const [allDepartamentos, setAllDepartamentos] = useState<any[]>([]);
 
-  const allArticles = getStoredArticles();
-  const allDepartamentos = getStoredDepartamentos();
+  // Cargar artículos y departamentos
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const [arts, depts] = await Promise.all([
+          getStoredArticles(),
+          getStoredDepartamentos(),
+        ]);
+        setAllArticles(Array.isArray(arts) ? arts : []);
+        setAllDepartamentos(Array.isArray(depts) ? depts : []);
+      } catch (error) {
+        console.error("Error al cargar datos:", error);
+        setAllArticles([]);
+        setAllDepartamentos([]);
+      }
+    };
+    if (open) {
+      fetchData();
+    }
+  }, [open]);
 
   // Filtrar artículos por búsqueda y excluir los ya agregados
   const articulosFiltrados = allArticles.filter((art) => {

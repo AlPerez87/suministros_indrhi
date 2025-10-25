@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { User } from "@/lib/types";
-import { findUserById } from "@/lib/user-storage";
+import { getStoredUsers } from "@/lib/storage-api";
 
 export function useUser() {
   const [user, setUser] = useState<User | null>(null);
@@ -11,24 +11,34 @@ export function useUser() {
   const router = useRouter();
 
   useEffect(() => {
-    let userId: string | null = null;
-    try {
-      userId = window.localStorage.getItem("userId");
-    } catch (error) {
-      console.error("No se pudo acceder al localStorage:", error);
-    }
-    
-    if (!userId) {
-      router.replace("/");
-    } else {
-      const currentUser = findUserById(userId);
-      if (currentUser) {
-        setUser(currentUser);
-      } else {
-        router.replace("/");
+    const loadUser = async () => {
+      let userId: string | null = null;
+      try {
+        userId = window.localStorage.getItem("userId");
+      } catch (error) {
+        console.error("No se pudo acceder al localStorage:", error);
       }
-    }
-    setIsLoading(false);
+      
+      if (!userId) {
+        router.replace("/");
+      } else {
+        try {
+          const users = await getStoredUsers();
+          const currentUser = users.find(u => u.id === userId);
+          if (currentUser) {
+            setUser(currentUser);
+          } else {
+            router.replace("/");
+          }
+        } catch (error) {
+          console.error("Error al cargar usuario:", error);
+          router.replace("/");
+        }
+      }
+      setIsLoading(false);
+    };
+    
+    loadUser();
   }, [router]);
 
   const logout = () => {

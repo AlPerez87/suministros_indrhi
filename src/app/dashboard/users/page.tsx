@@ -3,7 +3,7 @@
 import React, { useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { useUser } from "@/hooks/use-user";
-import { getStoredUsers, updateUser, addUser as addUserToStorage, deleteUser as deleteUserFromStorage } from "@/lib/user-storage";
+import { getStoredUsers, updateUser, addUser as addUserToStorage, deleteUser as deleteUserFromStorage } from "@/lib/storage-api";
 import { User, Role } from "@/lib/types";
 import { DataTable } from "@/components/users/data-table";
 import { getColumns } from "@/components/users/columns";
@@ -29,7 +29,15 @@ export default function UsersPage() {
   const { user, isLoading } = useUser();
   const router = useRouter();
   const { toast } = useToast();
-  const [allUsers, setAllUsers] = useState<User[]>(() => getStoredUsers());
+  const [allUsers, setAllUsers] = useState<User[]>([]);
+  
+  React.useEffect(() => {
+    const fetchUsers = async () => {
+      const users = await getStoredUsers();
+      setAllUsers(users);
+    };
+    fetchUsers();
+  }, []);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState<{ id: string; name: string } | null>(null);

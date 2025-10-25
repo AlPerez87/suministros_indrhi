@@ -16,7 +16,7 @@ import {
 } from "@/components/ui/tooltip";
 import { Badge } from "@/components/ui/badge";
 import { useUser } from "@/hooks/use-user";
-import { getStoredSolicitudesAprobadas } from "@/lib/storage";
+import { getStoredSolicitudesAprobadas } from "@/lib/storage-api";
 import { SolicitudAprobada } from "@/lib/types";
 import { formatDate } from "@/lib/format-utils";
 import { useRouter } from "next/navigation";
@@ -31,9 +31,14 @@ export function NotificationsBell() {
   const [open, setOpen] = useState(false);
 
   // Función para actualizar las solicitudes
-  const updateSolicitudes = useCallback(() => {
-    const solicitudes = getStoredSolicitudesAprobadas();
-    setSolicitudesAprobadas(solicitudes);
+  const updateSolicitudes = useCallback(async () => {
+    try {
+      const solicitudes = await getStoredSolicitudesAprobadas();
+      setSolicitudesAprobadas(Array.isArray(solicitudes) ? solicitudes : []);
+    } catch (error) {
+      console.error("Error al cargar solicitudes aprobadas:", error);
+      setSolicitudesAprobadas([]);
+    }
   }, []);
 
   // Actualizar las solicitudes aprobadas cuando se abre el popover
@@ -48,10 +53,10 @@ export function NotificationsBell() {
     updateSolicitudes();
 
     // Suscribirse a notificaciones
-    const unsubscribe = notificationManager.subscribe(updateSolicitudes);
+    const unsubscribe = notificationManager.subscribe(() => updateSolicitudes());
 
     // Actualizar cada 30 segundos como fallback
-    const interval = setInterval(updateSolicitudes, 30000);
+    const interval = setInterval(() => updateSolicitudes(), 30000);
 
     return () => {
       unsubscribe();

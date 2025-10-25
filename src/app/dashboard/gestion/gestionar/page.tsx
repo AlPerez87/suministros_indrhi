@@ -9,7 +9,7 @@ import {
   addSolicitudDespachada,
   updateSolicitudDepartamento,
   getStoredArticles,
-} from "@/lib/storage";
+} from "@/lib/storage-api";
 import { SolicitudGestionada, SolicitudDespachada } from "@/lib/types";
 import { DataTable } from "@/components/solicitudes/data-table";
 import { getColumns } from "@/components/solicitudes/columns";
@@ -34,13 +34,28 @@ export default function SolicitudesGestionadasPage() {
   const { user, isLoading } = useUser();
   const router = useRouter();
   const { toast } = useToast();
-  const [solicitudes, setSolicitudes] = useState<SolicitudGestionada[]>(() =>
-    getStoredSolicitudesGestionadas()
-  );
+  const [solicitudes, setSolicitudes] = useState<SolicitudGestionada[]>([]);
   const [selectedSolicitud, setSelectedSolicitud] = useState<SolicitudGestionada | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [allArticles, setAllArticles] = useState<any[]>([]);
 
-  const allArticles = getStoredArticles();
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const [solData, artData] = await Promise.all([
+          getStoredSolicitudesGestionadas(),
+          getStoredArticles(),
+        ]);
+        setSolicitudes(Array.isArray(solData) ? solData : []);
+        setAllArticles(Array.isArray(artData) ? artData : []);
+      } catch (error) {
+        console.error("Error al cargar datos:", error);
+        setSolicitudes([]);
+        setAllArticles([]);
+      }
+    };
+    fetchData();
+  }, []);
 
   useEffect(() => {
     if (!isLoading && user?.role !== "SuperAdmin" && user?.role !== "Admin" && user?.role !== "Supply") {

@@ -1,5 +1,6 @@
 "use client";
 
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import {
   Card,
@@ -29,7 +30,7 @@ import {
   getStoredSolicitudesDespachadas,
   getStoredAutorizacionSolicitudes,
   getStoredDepartamentos
-} from "@/lib/storage";
+} from "@/lib/storage-api";
 
 const PageHeader = ({ title, description }: { title: string, description?: string }) => (
   <div className="mb-6">
@@ -40,22 +41,51 @@ const PageHeader = ({ title, description }: { title: string, description?: strin
 
 export default function DashboardPage() {
   const { user, isLoading } = useUser();
+  const [solicitudes, setSolicitudes] = useState<any[]>([]);
+  const [articulos, setArticulos] = useState<any[]>([]);
+  const [solicitudesAprobadas, setSolicitudesAprobadas] = useState<any[]>([]);
+  const [solicitudesDespachadas, setSolicitudesDespachadas] = useState<any[]>([]);
+  const [autorizaciones, setAutorizaciones] = useState<any[]>([]);
+  const [departamentos, setDepartamentos] = useState<any[]>([]);
+  const [dataLoading, setDataLoading] = useState(true);
+
+  useEffect(() => {
+    const loadData = async () => {
+      try {
+        const [solData, artData, aprData, despData, autData, deptData] = await Promise.all([
+          getStoredSolicitudesDepartamentos(),
+          getStoredArticles(),
+          getStoredSolicitudesAprobadas(),
+          getStoredSolicitudesDespachadas(),
+          getStoredAutorizacionSolicitudes(),
+          getStoredDepartamentos(),
+        ]);
+        
+        setSolicitudes(Array.isArray(solData) ? solData : []);
+        setArticulos(Array.isArray(artData) ? artData : []);
+        setSolicitudesAprobadas(Array.isArray(aprData) ? aprData : []);
+        setSolicitudesDespachadas(Array.isArray(despData) ? despData : []);
+        setAutorizaciones(Array.isArray(autData) ? autData : []);
+        setDepartamentos(Array.isArray(deptData) ? deptData : []);
+      } catch (error) {
+        console.error("Error al cargar datos del dashboard:", error);
+      } finally {
+        setDataLoading(false);
+      }
+    };
+
+    if (user) {
+      loadData();
+    }
+  }, [user]);
   
-  if (isLoading) {
+  if (isLoading || dataLoading) {
     return <div>Cargando...</div>;
   }
 
   if (!user) {
     return null;
   }
-
-  // Obtener datos del sistema
-  const solicitudes = getStoredSolicitudesDepartamentos();
-  const articulos = getStoredArticles();
-  const solicitudesAprobadas = getStoredSolicitudesAprobadas();
-  const solicitudesDespachadas = getStoredSolicitudesDespachadas();
-  const autorizaciones = getStoredAutorizacionSolicitudes();
-  const departamentos = getStoredDepartamentos();
 
   // Filtrar solicitudes según el rol del usuario
   const solicitudesFiltradas = user.role === "Department" 

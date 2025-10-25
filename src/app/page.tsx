@@ -22,30 +22,43 @@ import {
 } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
-import { getStoredUsers } from "@/lib/user-storage";
+import { getStoredUsers, loginUser } from "@/lib/storage-api";
 
 export default function LoginPage() {
   const router = useRouter();
   const [selectedUser, setSelectedUser] = React.useState<string | null>(null);
   const [password, setPassword] = React.useState<string>("");
   const [error, setError] = React.useState<string>("");
-  const [users, setUsers] = React.useState(() => getStoredUsers());
+  const [users, setUsers] = React.useState<any[]>([]);
 
   React.useEffect(() => {
-    // Actualizar usuarios al montar el componente
-    setUsers(getStoredUsers());
+    const fetchUsers = async () => {
+      const data = await getStoredUsers();
+      setUsers(data);
+    };
+    fetchUsers();
   }, []);
 
-  const handleLogin = () => {
+  const handleLogin = async () => {
     if (selectedUser && password) {
-      const user = users.find(u => u.id === selectedUser);
-      if (user && user.password === password) {
-        if (typeof window !== "undefined") {
-          window.localStorage.setItem("userId", user.id);
+      const selectedUserData = users.find(u => u.id === selectedUser);
+      if (!selectedUserData) {
+        setError("Usuario no encontrado.");
+        return;
+      }
+
+      try {
+        const user = await loginUser(selectedUserData.email, password);
+        if (user) {
+          if (typeof window !== "undefined") {
+            window.localStorage.setItem("userId", user.id);
+          }
+          router.push("/dashboard");
+        } else {
+          setError("Contraseña incorrecta. Por favor, intenta de nuevo.");
         }
-        router.push("/dashboard");
-      } else {
-        setError("Contraseña incorrecta. Por favor, intenta de nuevo.");
+      } catch (error) {
+        setError("Error al iniciar sesión. Por favor, intenta de nuevo.");
       }
     }
   };

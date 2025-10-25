@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useUser } from "@/hooks/use-user";
-import { getStoredArticles, addArticle, updateArticle, deleteArticle, saveArticles } from "@/lib/storage";
+import { getStoredArticles, addArticle, updateArticle, deleteArticle } from "@/lib/storage-api";
 import { Article, UnidadArticulo } from "@/lib/types";
 import { DataTable } from "@/components/articulos/data-table";
 import { getColumns } from "@/components/articulos/columns";
@@ -28,9 +28,7 @@ export default function ArticulosPage() {
   const { user, isLoading } = useUser();
   const router = useRouter();
   const { toast } = useToast();
-  const [articulos, setArticulos] = useState<Article[]>(() => 
-    getStoredArticles()
-  );
+  const [articulos, setArticulos] = useState<Article[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingArticulo, setEditingArticulo] = useState<Article | undefined>();
   const [deletingId, setDeletingId] = useState<string | null>(null);
@@ -46,74 +44,107 @@ export default function ArticulosPage() {
     }
   }, [user, isLoading, router, toast]);
 
+  useEffect(() => {
+    const fetchArticulos = async () => {
+      const data = await getStoredArticles();
+      setArticulos(data);
+    };
+    fetchArticulos();
+  }, []);
+
   if (isLoading) return <div>Cargando...</div>;
   if (!user || (user.role !== 'SuperAdmin' && user.role !== 'Supply')) {
     return null;
   }
 
-  const handleCreateArticulo = (data: any) => {
-    const newArticulo: Article = {
-      id: `art-${Date.now()}`,
-      codigo_articulo: data.codigo_articulo,
-      descripcion: data.descripcion,
-      existencia: Number(data.existencia),
-      cantidad_minima: Number(data.cantidad_minima),
-      unidad: data.unidad,
-      valor: Number(data.valor),
-      valor_total: Number(data.valor) * Number(data.existencia),
-      // Campos antiguos para compatibilidad
-      name: data.descripcion,
-      quantityInStock: Number(data.existencia),
-      category: "General",
-    };
+  const handleCreateArticulo = async (data: any) => {
+    try {
+      const newArticulo: Article = {
+        id: `art-${Date.now()}`,
+        codigo_articulo: data.codigo_articulo,
+        descripcion: data.descripcion,
+        existencia: Number(data.existencia),
+        cantidad_minima: Number(data.cantidad_minima),
+        unidad: data.unidad,
+        valor: Number(data.valor),
+        valor_total: Number(data.valor) * Number(data.existencia),
+        // Campos antiguos para compatibilidad
+        name: data.descripcion,
+        quantityInStock: Number(data.existencia),
+        category: "General",
+      };
 
-    const updated = addArticle(newArticulo);
-    setArticulos(updated);
+      const updated = await addArticle(newArticulo);
+      setArticulos(updated);
 
-    toast({
-      title: "Artículo Creado",
-      description: `El artículo ${data.codigo_articulo} ha sido creado exitosamente.`,
-    });
+      toast({
+        title: "Artículo Creado",
+        description: `El artículo ${data.codigo_articulo} ha sido creado exitosamente.`,
+      });
+    } catch (error) {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "No se pudo crear el artículo.",
+      });
+    }
   };
 
-  const handleEditArticulo = (data: any) => {
+  const handleEditArticulo = async (data: any) => {
     if (!editingArticulo) return;
 
-    const valor_total = Number(data.valor) * Number(data.existencia);
-    
-    const updated = updateArticle(editingArticulo.id, {
-      codigo_articulo: data.codigo_articulo,
-      descripcion: data.descripcion,
-      existencia: Number(data.existencia),
-      cantidad_minima: Number(data.cantidad_minima),
-      unidad: data.unidad,
-      valor: Number(data.valor),
-      valor_total,
-      name: data.descripcion,
-      quantityInStock: Number(data.existencia),
-    });
+    try {
+      const valor_total = Number(data.valor) * Number(data.existencia);
+      
+      const updated = await updateArticle(editingArticulo.id, {
+        codigo_articulo: data.codigo_articulo,
+        descripcion: data.descripcion,
+        existencia: Number(data.existencia),
+        cantidad_minima: Number(data.cantidad_minima),
+        unidad: data.unidad,
+        valor: Number(data.valor),
+        valor_total,
+        name: data.descripcion,
+        quantityInStock: Number(data.existencia),
+      });
 
-    setArticulos(updated);
-    setEditingArticulo(undefined);
+      setArticulos(updated);
+      setEditingArticulo(undefined);
 
-    toast({
-      title: "Artículo Actualizado",
-      description: `El artículo ${data.codigo_articulo} ha sido actualizado exitosamente.`,
-    });
+      toast({
+        title: "Artículo Actualizado",
+        description: `El artículo ${data.codigo_articulo} ha sido actualizado exitosamente.`,
+      });
+    } catch (error) {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "No se pudo actualizar el artículo.",
+      });
+    }
   };
 
-  const handleDeleteArticulo = () => {
+  const handleDeleteArticulo = async () => {
     if (!deletingId) return;
 
-    const articulo = articulos.find((a) => a.id === deletingId);
-    const updated = deleteArticle(deletingId);
-    setArticulos(updated);
-    setDeletingId(null);
+    try {
+      const articulo = articulos.find((a) => a.id === deletingId);
+      const updated = await deleteArticle(deletingId);
+      setArticulos(updated);
+      setDeletingId(null);
 
-    toast({
-      title: "Artículo Eliminado",
-      description: `El artículo ${articulo?.codigo_articulo} ha sido eliminado exitosamente.`,
-    });
+      toast({
+        title: "Artículo Eliminado",
+        description: `El artículo ${articulo?.codigo_articulo} ha sido eliminado exitosamente.`,
+      });
+    } catch (error) {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "No se pudo eliminar el artículo.",
+      });
+      setDeletingId(null);
+    }
   };
 
   const handleOpenEdit = (articulo: Article) => {
@@ -135,30 +166,48 @@ export default function ArticulosPage() {
   };
 
   const handleCSVImport = async (data: any[]) => {
-    // Transformar y validar los datos del CSV
-    const articulos: Article[] = data.map((row, index) => {
-      const existencia = Number(row.existencia) || 0;
-      const valor = Number(row.valor) || 0;
-      
-      return {
-        id: `art-${Date.now()}-${index}`,
-        codigo_articulo: row.codigo_articulo || '',
-        descripcion: row.descripcion || '',
-        existencia,
-        cantidad_minima: Number(row.cantidad_minima) || 0,
-        unidad: (row.unidad || 'UNIDAD') as UnidadArticulo,
-        valor,
-        valor_total: valor * existencia,
-        // Campos antiguos para compatibilidad
-        name: row.descripcion || '',
-        quantityInStock: existencia,
-        category: "General",
-      };
-    });
+    try {
+      // Transformar y validar los datos del CSV
+      const articulosNuevos: Article[] = data.map((row, index) => {
+        const existencia = Number(row.existencia) || 0;
+        const valor = Number(row.valor) || 0;
+        
+        return {
+          id: `art-${Date.now()}-${index}`,
+          codigo_articulo: row.codigo_articulo || '',
+          descripcion: row.descripcion || '',
+          existencia,
+          cantidad_minima: Number(row.cantidad_minima) || 0,
+          unidad: (row.unidad || 'UNIDAD') as UnidadArticulo,
+          valor,
+          valor_total: valor * existencia,
+          // Campos antiguos para compatibilidad
+          name: row.descripcion || '',
+          quantityInStock: existencia,
+          category: "General",
+        };
+      });
 
-    // Guardar los nuevos artículos (reemplaza solo artículos, no todo)
-    saveArticles(articulos);
-    setArticulos(articulos);
+      // Guardar cada artículo en la base de datos
+      for (const articulo of articulosNuevos) {
+        await addArticle(articulo);
+      }
+
+      // Refrescar la lista
+      const updated = await getStoredArticles();
+      setArticulos(updated);
+
+      toast({
+        title: "Importación Exitosa",
+        description: `Se importaron ${articulosNuevos.length} artículos correctamente.`,
+      });
+    } catch (error) {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "No se pudieron importar los artículos.",
+      });
+    }
   };
 
   const columns = getColumns({

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Dialog,
   DialogContent,
@@ -21,7 +21,7 @@ import {
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { AutorizacionSolicitud } from "@/lib/types";
-import { getStoredArticles } from "@/lib/storage";
+import { getStoredArticles } from "@/lib/storage-api";
 import { formatDate } from "@/lib/format-utils";
 import { Separator } from "@/components/ui/separator";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -49,9 +49,24 @@ export function AutorizacionModal({
   onApprove,
   onReject,
 }: AutorizacionModalProps) {
-  const allArticles = getStoredArticles();
+  const [allArticles, setAllArticles] = useState<any[]>([]);
   const [showApproveDialog, setShowApproveDialog] = useState(false);
   const [showRejectDialog, setShowRejectDialog] = useState(false);
+
+  useEffect(() => {
+    const fetchArticles = async () => {
+      try {
+        const arts = await getStoredArticles();
+        setAllArticles(Array.isArray(arts) ? arts : []);
+      } catch (error) {
+        console.error("Error al cargar artículos:", error);
+        setAllArticles([]);
+      }
+    };
+    if (open && solicitud) {
+      fetchArticles();
+    }
+  }, [open, solicitud]);
 
   if (!solicitud) return null;
 

@@ -10,7 +10,7 @@ import {
 } from "@/components/ui/dialog";
 import { EntradaMercancia } from "@/lib/types";
 import { formatDate } from "@/lib/format-utils";
-import { getStoredArticles } from "@/lib/storage";
+import { getStoredArticles } from "@/lib/storage-api";
 import { Label } from "@/components/ui/label";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
@@ -31,9 +31,25 @@ interface DetalleModalProps {
 }
 
 export function DetalleModal({ entrada, open, onOpenChange }: DetalleModalProps) {
+  const [articulos, setArticulos] = React.useState<any[]>([]);
+
+  React.useEffect(() => {
+    const fetchArticulos = async () => {
+      try {
+        const arts = await getStoredArticles();
+        setArticulos(Array.isArray(arts) ? arts : []);
+      } catch (error) {
+        console.error("Error al cargar artículos:", error);
+        setArticulos([]);
+      }
+    };
+    if (open && entrada) {
+      fetchArticulos();
+    }
+  }, [open, entrada]);
+
   if (!entrada) return null;
 
-  const articulos = getStoredArticles();
   const totalArticulos = entrada.articulos_cantidades.length;
   const totalCantidad = entrada.articulos_cantidades.reduce(
     (sum, item) => sum + item.cantidad,

@@ -7,9 +7,8 @@ import {
   getStoredDepartamentos, 
   addDepartamento, 
   updateDepartamento, 
-  deleteDepartamento,
-  saveDepartamentos
-} from "@/lib/storage";
+  deleteDepartamento
+} from "@/lib/storage-api";
 import { Departamento } from "@/lib/types";
 import { DataTable } from "@/components/departamentos/data-table";
 import { getColumns } from "@/components/departamentos/columns";
@@ -34,9 +33,7 @@ export default function DepartamentosPage() {
   const { user, isLoading } = useUser();
   const router = useRouter();
   const { toast } = useToast();
-  const [departamentos, setDepartamentos] = useState<Departamento[]>(() => 
-    getStoredDepartamentos()
-  );
+  const [departamentos, setDepartamentos] = useState<Departamento[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingDepartamento, setEditingDepartamento] = useState<Departamento | undefined>();
   const [deletingId, setDeletingId] = useState<string | null>(null);
@@ -52,86 +49,119 @@ export default function DepartamentosPage() {
     }
   }, [user, isLoading, router, toast]);
 
+  useEffect(() => {
+    const fetchDepartamentos = async () => {
+      const data = await getStoredDepartamentos();
+      setDepartamentos(data);
+    };
+    fetchDepartamentos();
+  }, []);
+
   if (isLoading) return <div>Cargando...</div>;
   if (!user || (user.role !== 'SuperAdmin' && user.role !== 'Supply')) {
     return null;
   }
 
-  const handleCreateDepartamento = (data: any) => {
-    // Verificar si el código ya existe
-    const codigoExiste = departamentos.some(
-      (d) => d.codigo.toLowerCase() === data.codigo.toLowerCase()
-    );
+  const handleCreateDepartamento = async (data: any) => {
+    try {
+      // Verificar si el código ya existe
+      const codigoExiste = departamentos.some(
+        (d) => d.codigo.toLowerCase() === data.codigo.toLowerCase()
+      );
 
-    if (codigoExiste) {
+      if (codigoExiste) {
+        toast({
+          variant: "destructive",
+          title: "Error",
+          description: "Ya existe un departamento con ese código.",
+        });
+        return;
+      }
+
+      const newDepartamento: Departamento = {
+        id: `dept-${Date.now()}`,
+        codigo: data.codigo.toUpperCase(),
+        departamento: data.departamento,
+      };
+
+      const updated = await addDepartamento(newDepartamento);
+      setDepartamentos(updated);
+
+      toast({
+        title: "Departamento Creado",
+        description: `El departamento ${data.departamento} ha sido creado exitosamente.`,
+      });
+    } catch (error) {
       toast({
         variant: "destructive",
         title: "Error",
-        description: "Ya existe un departamento con ese código.",
+        description: "No se pudo crear el departamento.",
       });
-      return;
     }
-
-    const newDepartamento: Departamento = {
-      id: `dept-${Date.now()}`,
-      codigo: data.codigo.toUpperCase(),
-      departamento: data.departamento,
-    };
-
-    const updated = addDepartamento(newDepartamento);
-    setDepartamentos(updated);
-
-    toast({
-      title: "Departamento Creado",
-      description: `El departamento ${data.departamento} ha sido creado exitosamente.`,
-    });
   };
 
-  const handleEditDepartamento = (data: any) => {
+  const handleEditDepartamento = async (data: any) => {
     if (!editingDepartamento) return;
 
-    // Verificar si el código ya existe (excluyendo el actual)
-    const codigoExiste = departamentos.some(
-      (d) => 
-        d.id !== editingDepartamento.id && 
-        d.codigo.toLowerCase() === data.codigo.toLowerCase()
-    );
+    try {
+      // Verificar si el código ya existe (excluyendo el actual)
+      const codigoExiste = departamentos.some(
+        (d) => 
+          d.id !== editingDepartamento.id && 
+          d.codigo.toLowerCase() === data.codigo.toLowerCase()
+      );
 
-    if (codigoExiste) {
+      if (codigoExiste) {
+        toast({
+          variant: "destructive",
+          title: "Error",
+          description: "Ya existe un departamento con ese código.",
+        });
+        return;
+      }
+
+      const updated = await updateDepartamento(editingDepartamento.id, {
+        codigo: data.codigo.toUpperCase(),
+        departamento: data.departamento,
+      });
+
+      setDepartamentos(updated);
+      setEditingDepartamento(undefined);
+
+      toast({
+        title: "Departamento Actualizado",
+        description: `El departamento ${data.departamento} ha sido actualizado exitosamente.`,
+      });
+    } catch (error) {
       toast({
         variant: "destructive",
         title: "Error",
-        description: "Ya existe un departamento con ese código.",
+        description: "No se pudo actualizar el departamento.",
       });
-      return;
     }
-
-    const updated = updateDepartamento(editingDepartamento.id, {
-      codigo: data.codigo.toUpperCase(),
-      departamento: data.departamento,
-    });
-
-    setDepartamentos(updated);
-    setEditingDepartamento(undefined);
-
-    toast({
-      title: "Departamento Actualizado",
-      description: `El departamento ${data.departamento} ha sido actualizado exitosamente.`,
-    });
   };
 
-  const handleDeleteDepartamento = () => {
+  const handleDeleteDepartamento = async () => {
     if (!deletingId) return;
 
-    const departamento = departamentos.find((d) => d.id === deletingId);
-    const updated = deleteDepartamento(deletingId);
-    setDepartamentos(updated);
-    setDeletingId(null);
+    try {
+      const departamento = departamentos.find((d) => d.id === deletingId);
+      const updated = await deleteDepartamento(deletingId);
+      setDepartamentos(updated);
+      setDeletingId(null);
 
-    toast({
-      title: "Departamento Eliminado",
-      description: `El departamento ${departamento?.departamento} ha sido eliminado exitosamente.`,
-    });
+      toast({
+        title: "Departamento Eliminado",
+        description: `El departamento ${departamento?.departamento} ha sido eliminado exitosamente.`,
+      });
+    } catch (error) {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "No se pudo eliminar el departamento.",
+      });
+      setDeletingId(null);
+    }
   };
 
   const handleOpenEdit = (departamento: Departamento) => {
@@ -153,18 +183,36 @@ export default function DepartamentosPage() {
   };
 
   const handleCSVImport = async (data: any[]) => {
-    // Transformar y validar los datos del CSV
-    const departamentos: Departamento[] = data.map((row, index) => {
-      return {
-        id: `dept-${Date.now()}-${index}`,
-        codigo: (row.codigo || '').toUpperCase(),
-        departamento: row.departamento || '',
-      };
-    });
+    try {
+      // Transformar y validar los datos del CSV
+      const departamentosNuevos: Departamento[] = data.map((row, index) => {
+        return {
+          id: `dept-${Date.now()}-${index}`,
+          codigo: (row.codigo || '').toUpperCase(),
+          departamento: row.departamento || '',
+        };
+      });
 
-    // Guardar los nuevos departamentos (reemplaza solo departamentos, no todo)
-    saveDepartamentos(departamentos);
-    setDepartamentos(departamentos);
+      // Guardar cada departamento en la base de datos
+      for (const dept of departamentosNuevos) {
+        await addDepartamento(dept);
+      }
+
+      // Refrescar la lista
+      const updated = await getStoredDepartamentos();
+      setDepartamentos(updated);
+
+      toast({
+        title: "Importación Exitosa",
+        description: `Se importaron ${departamentosNuevos.length} departamentos correctamente.`,
+      });
+    } catch (error) {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "No se pudieron importar los departamentos.",
+      });
+    }
   };
 
   const columns = getColumns({
